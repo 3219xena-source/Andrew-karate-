@@ -132,9 +132,9 @@ describe('team and fighter selection', () => {
   });
 
   it('keeps the selected fighter when the same club is re-selected', () => {
-    useGameStore.getState().selectFighter('cathryn');
+    useGameStore.getState().selectFighter('bea-halloran');
     useGameStore.getState().selectTeam('hobart');
-    expect(useGameStore.getState().progress.selectedFighterId).toBe('cathryn');
+    expect(useGameStore.getState().progress.selectedFighterId).toBe('bea-halloran');
   });
 
   it('selects a fighter and enters the dojo', () => {

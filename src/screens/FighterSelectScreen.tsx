@@ -16,7 +16,14 @@ import { getRoster, getStrongestStats } from '../data/fighters.ts';
 import { getTeam } from '../data/teams.ts';
 import { audioManager } from '../systems/audio/audioManager.ts';
 import { selectPreviewFighter, useGameStore } from '../state/gameStore.ts';
-import { STAT_LABELS, STAT_KEYS, type Fighter } from '../types/fighter.ts';
+import {
+  BELT_LABELS,
+  SKILL_TIER_LABELS,
+  STAT_KEYS,
+  STAT_LABELS,
+  WEIGHT_CLASS_LABELS,
+  type Fighter,
+} from '../types/fighter.ts';
 
 /**
  * Idle-stance placeholder. A simple breathing silhouette in the fighter's own
@@ -145,7 +152,9 @@ export function FighterSelectScreen() {
                     {fighter.ageClassification === 'junior' ? (
                       <span className="badge badge--junior">Junior</span>
                     ) : null}
-                    {!fighter.unlocked ? <span className="badge badge--placeholder">Locked</span> : null}
+                    <span className="badge badge--belt" data-belt={fighter.belt}>
+                      {BELT_LABELS[fighter.belt]}
+                    </span>
                   </div>
                 </button>
               </li>
@@ -166,9 +175,11 @@ export function FighterSelectScreen() {
                 {profile.relationship ? <p className="subtle">{profile.relationship}</p> : null}
                 <div className="row row--wrap" style={{ marginTop: 'var(--space-2)' }}>
                   <span className="badge">{ageLabel(profile.ageClassification)}</span>
-                  {profile.isPlaceholder ? (
-                    <span className="badge badge--placeholder">Placeholder record</span>
-                  ) : null}
+                  <span className="badge">{WEIGHT_CLASS_LABELS[profile.weightClass]}</span>
+                  <span className="badge badge--belt" data-belt={profile.belt}>
+                    {BELT_LABELS[profile.belt]}
+                  </span>
+                  <span className="badge">{SKILL_TIER_LABELS[profile.skillTier]}</span>
                 </div>
               </div>
             </div>

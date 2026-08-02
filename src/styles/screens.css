@@ -1113,3 +1113,29 @@
     flex-direction: row-reverse;
   }
 }
+
+/* ── Belt badges ──────────────────────────────────────────────────────────── */
+
+/*
+ * The belt colour is shown as a swatch beside the belt's NAME, so the grade is
+ * never communicated by colour alone.
+ */
+.badge--belt::before {
+  content: '';
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: var(--space-1);
+  border-radius: 2px;
+  border: 1px solid rgba(238, 242, 248, 0.35);
+  background: var(--belt-colour, #e8ecf2);
+  vertical-align: -1px;
+}
+
+.badge--belt[data-belt='white'] { --belt-colour: #e8ecf2; }
+.badge--belt[data-belt='yellow'] { --belt-colour: #e3c545; }
+.badge--belt[data-belt='orange'] { --belt-colour: #e08a3a; }
+.badge--belt[data-belt='green'] { --belt-colour: #3f9b62; }
+.badge--belt[data-belt='blue'] { --belt-colour: #2f5fd0; }
+.badge--belt[data-belt='brown'] { --belt-colour: #6b4630; }
+.badge--belt[data-belt='black'] { --belt-colour: #12161d; }

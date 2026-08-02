@@ -415,7 +415,7 @@ describe('rounds and bouts', () => {
 
   it('plays sudden death when a round expires exactly level', () => {
     const red = getFighter('andrew-gillian');
-    const blue = getFighter('cathryn');
+    const blue = getFighter('bea-halloran');
     if (!red || !blue) throw new Error('fixtures missing');
     const engine = new MatchEngine(red, blue, { humanCorner: 'red', roundSeconds: 1 });
     engine.beginFighting();
@@ -427,7 +427,7 @@ describe('rounds and bouts', () => {
 
   it('takes the bout when a fighter wins two rounds', () => {
     const red = getFighter('andrew-gillian');
-    const blue = getFighter('cathryn');
+    const blue = getFighter('bea-halloran');
     if (!red || !blue) throw new Error('fixtures missing');
     const engine = new MatchEngine(red, blue, { humanCorner: 'red', roundSeconds: 2 });
     engine.beginFighting();
@@ -446,7 +446,7 @@ describe('rounds and bouts', () => {
 
   it('resets positions, health and stamina between rounds', () => {
     const red = getFighter('andrew-gillian');
-    const blue = getFighter('cathryn');
+    const blue = getFighter('bea-halloran');
     if (!red || !blue) throw new Error('fixtures missing');
     // The clock must outlast the walk into range, or the round ends first.
     const engine = new MatchEngine(red, blue, { humanCorner: 'red', roundSeconds: 6 });
@@ -469,7 +469,7 @@ describe('rounds and bouts', () => {
 
   it('accepts no input outside the fighting phase', () => {
     const red = getFighter('andrew-gillian');
-    const blue = getFighter('cathryn');
+    const blue = getFighter('bea-halloran');
     if (!red || !blue) throw new Error('fixtures missing');
     const engine = new MatchEngine(red, blue);
     const before = engine.getState().red.x;
@@ -479,7 +479,7 @@ describe('rounds and bouts', () => {
 
   it('warns when the round clock is running out', () => {
     const red = getFighter('andrew-gillian');
-    const blue = getFighter('cathryn');
+    const blue = getFighter('bea-halloran');
     if (!red || !blue) throw new Error('fixtures missing');
     const engine = new MatchEngine(red, blue, { roundSeconds: 11 });
     engine.beginFighting();

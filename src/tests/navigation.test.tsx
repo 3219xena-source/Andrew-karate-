@@ -135,7 +135,7 @@ describe('team profile', () => {
 
     const roster = screen.getByTestId('team-roster');
     expect(within(roster).getAllByRole('listitem')).toHaveLength(6);
-    for (const name of ['Andrew Gillian', 'Ales', 'Cathryn', 'Mr Graham', 'Janet', 'Mrs Graham']) {
+    for (const name of ['Andrew', 'Alice', 'Bea Halloran', 'Mr Graham', 'Janet', 'Susan Gillan']) {
       expect(within(roster).getByText(name)).toBeVisible();
     }
   });
@@ -172,9 +172,9 @@ describe('fighter selection', () => {
     const user = userEvent.setup();
     await openFighterSelect(user);
 
-    await user.click(screen.getByTestId('fighter-card-cathryn'));
+    await user.click(screen.getByTestId('fighter-card-bea-halloran'));
     const profile = screen.getByTestId('fighter-profile');
-    expect(within(profile).getByRole('heading', { name: 'Cathryn' })).toBeVisible();
+    expect(within(profile).getByRole('heading', { name: 'Bea Halloran' })).toBeVisible();
     expect(within(profile).getByText(/Defensive karate/)).toBeVisible();
     expect(within(profile).getByText(/Read and Reply/)).toBeVisible();
   });
@@ -222,7 +222,7 @@ describe('fighter selection', () => {
 
     await user.click(screen.getByTestId('fighter-card-janet-gillian'));
     expect(screen.getByTestId('fighter-card-janet-gillian')).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('fighter-card-cathryn')).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('fighter-card-bea-halloran')).toHaveAttribute('aria-pressed', 'false');
   });
 });
 

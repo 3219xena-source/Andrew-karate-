@@ -11,6 +11,7 @@ import { Emblem } from '../components/ui/Emblem.tsx';
 import { Portrait } from '../components/ui/Portrait.tsx';
 import { ScreenFrame } from '../components/ui/ScreenFrame.tsx';
 import { getRoster } from '../data/fighters.ts';
+import { BELT_LABELS } from '../types/fighter.ts';
 import { getVenue } from '../data/venues.ts';
 import { getTeam } from '../data/teams.ts';
 import { useGameStore } from '../state/gameStore.ts';
@@ -116,9 +117,9 @@ export function TeamScreen() {
                   {fighter.ageClassification === 'junior' ? (
                     <span className="badge badge--junior">Junior class</span>
                   ) : null}
-                  {fighter.isPlaceholder ? (
-                    <span className="badge badge--placeholder">Placeholder</span>
-                  ) : null}
+                  <span className="badge badge--belt" data-belt={fighter.belt}>
+                    {BELT_LABELS[fighter.belt]}
+                  </span>
                 </div>
               </li>
             ))}

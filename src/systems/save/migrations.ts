@@ -10,6 +10,33 @@
 
 import { SAVE_VERSION } from '../../types/save.ts';
 
+/**
+ * Fighter ids that were retired in version 3, and what replaces them.
+ *
+ * Cathryn was removed from the Hobart roster and her junior slot is now filled
+ * by Bea Halloran. Remapping rather than deleting means a save's completed
+ * bouts keep their scores and a season's results stay intact — the bout is
+ * still recorded, just attributed to the fighter who now holds that slot.
+ */
+export const RETIRED_FIGHTER_IDS: Readonly<Record<string, string>> = {
+  cathryn: 'bea-halloran',
+};
+
+/** Rewrites every retired fighter id anywhere in a save payload. */
+function remapRetiredFighters(value: unknown): unknown {
+  if (typeof value === 'string') return RETIRED_FIGHTER_IDS[value] ?? value;
+  if (Array.isArray(value)) return value.map(remapRetiredFighters);
+  if (typeof value === 'object' && value !== null) {
+    const output: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+      // Career records are keyed BY fighter id, so the key is remapped too.
+      output[RETIRED_FIGHTER_IDS[key] ?? key] = remapRetiredFighters(entry);
+    }
+    return output;
+  }
+  return value;
+}
+
 export type Migration = (input: Record<string, unknown>) => Record<string, unknown>;
 
 /** Keyed by the version being migrated FROM. */
@@ -51,6 +78,20 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
       },
     };
   },
+
+  /**
+   * 2 → 3: the Hobart roster was re-cast.
+   *
+   * Cathryn was retired and Bea Halloran now fills her junior slot. Every
+   * reference to a retired fighter — the selected fighter, recorded bouts, an
+   * event in progress and career records — is remapped to the replacement, so
+   * no progress is lost and no screen can be handed an id that no longer
+   * resolves. Everything else carries over untouched.
+   */
+  2: (input) => ({
+    ...(remapRetiredFighters(input) as Record<string, unknown>),
+    version: 3,
+  }),
 };
 
 /**

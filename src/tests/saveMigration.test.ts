@@ -289,3 +289,148 @@ describe('season persistence', () => {
     expect(loaded.data.fighterRecords['a-fighter-who-left']).toBeUndefined();
   });
 });
+
+// ── Version 2 → 3: the retired Hobart fighter ────────────────────────────────
+
+describe('version 2 to 3 migration (retired fighter)', () => {
+  /** A version-2 save built around the retired fighter. */
+  function v2SaveWithRetiredFighter(): Record<string, unknown> {
+    return {
+      version: 2,
+      audio: {
+        masterEnabled: true,
+        musicEnabled: false,
+        sfxEnabled: true,
+        musicVolume: 0.4,
+        sfxVolume: 0.6,
+      },
+      accessibility: { reducedMotion: true, screenShake: false, announcementCaptions: true },
+      progress: {
+        selectedTeamId: 'hobart',
+        selectedFighterId: 'cathryn',
+        completedObjectiveIds: ['reach-mark', 'footwork', 'jump', 'light-attacks'],
+        tutorialComplete: true,
+        stage1Complete: true,
+        firstTournamentUnlocked: true,
+      },
+      playerTeamId: 'hobart',
+      difficulty: 'advanced',
+      season: {
+        seasonId: 'season-1',
+        playerTeamId: 'hobart',
+        results: [
+          {
+            eventId: 'season-1-r1',
+            playerTeamId: 'hobart',
+            opponentTeamId: 'launceston',
+            bouts: [
+              {
+                index: 2,
+                playerFighterId: 'cathryn',
+                opponentFighterId: 'kai-nordholm',
+                winner: 'player',
+                playerRounds: 2,
+                opponentRounds: 0,
+                endReason: 'knockout',
+                stats: {},
+                isTieBreaker: false,
+              },
+            ],
+          },
+        ],
+      },
+      fighterRecords: { cathryn: { wins: 4, losses: 1, knockouts: 3 } },
+      activeEvent: null,
+    };
+  }
+
+  it('replaces the retired fighter everywhere rather than dropping progress', () => {
+    const migrated = migrateSave(v2SaveWithRetiredFighter(), 2);
+    expect(migrated.version).toBe(SAVE_VERSION);
+
+    const progress = migrated.progress as Record<string, unknown>;
+    expect(progress.selectedFighterId).toBe('bea-halloran');
+
+    // The career record moves across, keyed by the replacement.
+    const records = migrated.fighterRecords as Record<string, unknown>;
+    expect(records['bea-halloran']).toEqual({ wins: 4, losses: 1, knockouts: 3 });
+    expect(records.cathryn).toBeUndefined();
+  });
+
+  it('keeps the recorded bout, re-attributed to the replacement fighter', () => {
+    window.localStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(v2SaveWithRetiredFighter()));
+    const result = loadSave();
+
+    expect(result.status).toBe('migrated');
+    const bouts = result.data.season?.results[0]?.bouts ?? [];
+    expect(bouts).toHaveLength(1);
+    expect(bouts[0]?.playerFighterId).toBe('bea-halloran');
+    expect(bouts[0]?.winner).toBe('player');
+    // The event result survives, so the standings are unchanged.
+    expect(result.data.season?.results[0]?.playerBoutWins).toBe(1);
+  });
+
+  it('preserves every unrelated setting and all training progress', () => {
+    window.localStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(v2SaveWithRetiredFighter()));
+    const result = loadSave();
+
+    expect(result.data.audio.musicEnabled).toBe(false);
+    expect(result.data.audio.musicVolume).toBe(0.4);
+    expect(result.data.accessibility.screenShake).toBe(false);
+    expect(result.data.difficulty).toBe('advanced');
+    expect(result.data.progress.completedObjectiveIds).toHaveLength(4);
+    expect(result.data.progress.stage1Complete).toBe(true);
+    expect(result.data.playerTeamId).toBe('hobart');
+  });
+
+  it('never leaves the roster short: the club still fields six fighters', () => {
+    expect(getRoster('hobart')).toHaveLength(6);
+    expect(getRoster('hobart').map((fighter) => fighter.slot)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(getRoster('hobart').some((fighter) => fighter.id === 'cathryn')).toBe(false);
+  });
+
+  it('migrates a version-1 save straight through to the current version', () => {
+    // A Stage 1 save that also selected the retired fighter.
+    const v1 = {
+      version: 1,
+      audio: {
+        masterEnabled: true,
+        musicEnabled: true,
+        sfxEnabled: true,
+        musicVolume: 0.5,
+        sfxVolume: 0.7,
+      },
+      accessibility: { reducedMotion: false },
+      progress: {
+        selectedTeamId: 'hobart',
+        selectedFighterId: 'cathryn',
+        completedObjectiveIds: ['reach-mark'],
+        tutorialComplete: false,
+        stage1Complete: false,
+        firstTournamentUnlocked: false,
+      },
+    };
+    window.localStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(v1));
+
+    const result = loadSave();
+    expect(result.status).toBe('migrated');
+    expect(result.data.version).toBe(SAVE_VERSION);
+    expect(result.data.progress.selectedFighterId).toBe('bea-halloran');
+    expect(result.data.progress.completedObjectiveIds).toEqual(['reach-mark']);
+  });
+
+  it('does not crash on a save that references the retired fighter with no replacement path', () => {
+    // A hand-edited save naming a fighter that never existed at all.
+    window.localStorage.setItem(
+      SAVE_STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        progress: { selectedTeamId: 'hobart', selectedFighterId: 'someone-invented' },
+        playerTeamId: 'hobart',
+      }),
+    );
+    const result = loadSave();
+    expect(result.data.progress.selectedFighterId).toBeNull();
+    expect(result.data.playerTeamId).toBe('hobart');
+  });
+});

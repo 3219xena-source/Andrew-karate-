@@ -113,7 +113,7 @@ describe('legality', () => {
 
   it('produces no output at all outside the fighting phase', () => {
     const red = getFighter('andrew-gillian');
-    const blue = getFighter('cathryn');
+    const blue = getFighter('bea-halloran');
     if (!red || !blue) throw new Error('fixtures missing');
     const engine = new MatchEngine(red, blue);
     const ai = new OpponentAI({ difficulty: 'standard', profile: 'balanced', corner: 'blue' });

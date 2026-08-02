@@ -87,12 +87,12 @@ describe('fighter data', () => {
   it('lists the six authored main-team fighters', () => {
     const roster = getRoster(FEATURED_TEAM_ID);
     expect(roster.map((fighter) => fighter.name)).toEqual([
-      'Andrew Gillian',
-      'Ales',
-      'Cathryn',
+      'Andrew',
+      'Alice',
+      'Bea Halloran',
       'Mr Graham',
       'Janet',
-      'Mrs Graham',
+      'Susan Gillan',
     ]);
     expect(roster.every((fighter) => fighter.unlocked)).toBe(true);
     expect(roster.every((fighter) => !fighter.isPlaceholder)).toBe(true);
@@ -136,7 +136,7 @@ describe('fighter data', () => {
   });
 
   it('resolves fighters by id and rejects unknown ids', () => {
-    expect(getFighter('andrew-gillian')?.name).toBe('Andrew Gillian');
+    expect(getFighter('andrew-gillian')?.name).toBe('Andrew');
     expect(getFighter('nobody')).toBeUndefined();
     expect(getFighter(null)).toBeUndefined();
     expect(isSelectableFighterId('andrew-gillian')).toBe(true);
@@ -156,7 +156,7 @@ describe('fighter data', () => {
     const juniors = getRoster(FEATURED_TEAM_ID).filter(
       (fighter) => fighter.ageClassification === 'junior',
     );
-    expect(juniors.map((fighter) => fighter.name)).toEqual(['Ales', 'Cathryn']);
+    expect(juniors.map((fighter) => fighter.name)).toEqual(['Alice', 'Bea Halloran']);
   });
 
   it('returns an empty roster rather than throwing for an unknown club', () => {

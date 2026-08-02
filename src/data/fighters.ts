@@ -27,12 +27,15 @@ import type {
   AiProfile,
   AnimationConfig,
   ArtworkProvenance,
+  Belt,
   Fighter,
   FighterStats,
+  SkillTier,
   SpecialMove,
   VoiceConfig,
   WeightClass,
 } from '../types/fighter.ts';
+import { BELT_COLOURS } from '../types/fighter.ts';
 import type { AgeClassification, StatKey } from '../types/fighter.ts';
 import type { TeamId } from '../types/team.ts';
 import { TEAMS } from './teams.ts';
@@ -77,7 +80,7 @@ function voice(bank: string): VoiceConfig {
   };
 }
 
-/** All visible fighter art is procedural in this build. */
+/** Art drawn by the game at runtime, standing in for final artwork. */
 const PROCEDURAL_ART: ArtworkProvenance = {
   method: 'procedural',
   owner: 'project',
@@ -85,12 +88,38 @@ const PROCEDURAL_ART: ArtworkProvenance = {
   placeholder: true,
 };
 
+/**
+ * Directory holding the character artwork supplied by the project owner.
+ *
+ * Paths are stored WITHOUT a leading slash and are resolved against
+ * `import.meta.env.BASE_URL` at render time, so they work in development, in
+ * the production build and under a non-root deployment path alike.
+ */
+export const CHARACTER_ART_DIR = 'assets/characters/team-tasmania';
+
+/** Provenance for an image the project owner supplied and cleared for use. */
+function suppliedArt(altText: string): ArtworkProvenance {
+  return {
+    method: 'supplied',
+    owner: 'owner-supplied',
+    licence: 'owner-supplied',
+    placeholder: false,
+    altText,
+  };
+}
+
 interface FighterSeed {
   readonly id: string;
   readonly name: string;
   readonly role: string;
   readonly relationship?: string;
   readonly age: number;
+  readonly belt: Belt;
+  readonly skillTier: SkillTier;
+  /** File name inside `CHARACTER_ART_DIR`, when artwork has been supplied. */
+  readonly portraitFile?: string;
+  /** Alt text for supplied artwork. Required whenever `portraitFile` is set. */
+  readonly portraitAlt?: string;
   readonly biography: string;
   readonly fightingStyle: string;
   readonly strengths: string;
@@ -129,6 +158,8 @@ function buildRoster(teamId: TeamId, seeds: readonly FighterSeed[]): Fighter[] {
       ageClassification: template.ageClassification,
       age: seed.age,
       weightClass: template.weightClass,
+      belt: seed.belt,
+      skillTier: seed.skillTier,
       biography: seed.biography,
       fightingStyle: seed.fightingStyle,
       strengths: seed.strengths,
@@ -136,15 +167,21 @@ function buildRoster(teamId: TeamId, seeds: readonly FighterSeed[]): Fighter[] {
       stats: seed.stats,
       specialAbility: seed.specialAbility,
       aiProfile: seed.aiProfile,
-      portraitAsset: null,
+      portraitAsset: seed.portraitFile ? `${CHARACTER_ART_DIR}/${seed.portraitFile}` : null,
       modelAsset: null,
       animation: animation({
         accentColour: team.colours.primary,
         build: BUILD_BY_WEIGHT[template.weightClass],
+        // The belt grade drives the belt colour on the procedural figure, so
+        // the two can never drift apart.
+        beltColour: BELT_COLOURS[seed.belt],
         ...seed.look,
       }),
       voice: voice(seed.id),
-      artwork: PROCEDURAL_ART,
+      artwork:
+        seed.portraitFile && seed.portraitAlt
+          ? suppliedArt(seed.portraitAlt)
+          : PROCEDURAL_ART,
       unlocked: true,
       isPlaceholder: false,
       playable: true,
@@ -158,9 +195,14 @@ function buildRoster(teamId: TeamId, seeds: readonly FighterSeed[]): Fighter[] {
 const HOBART: readonly FighterSeed[] = [
   {
     id: 'andrew-gillian',
-    name: 'Andrew Gillian',
+    name: 'Andrew',
     role: 'Club captain and lead fighter',
     age: 41,
+    belt: 'black',
+    skillTier: 'advanced',
+    portraitFile: 'andrew-black-belt.png',
+    portraitAlt:
+      'Andrew, an adult black-belt karateka in a white gi with green Tasmania trim, standing in an open-hand guard.',
     biography:
       'Andrew leads the Hobart squad from the front, and is the club’s first choice in a close tie. He fights a balanced karate game with no obvious gap for an opponent to work on, and is at his most dangerous when he links techniques together.',
     fightingStyle: 'Balanced karate',
@@ -174,16 +216,21 @@ const HOBART: readonly FighterSeed[] = [
       effect: 'flurry',
     },
     aiProfile: 'balanced',
-    look: { beltColour: '#141922', hairColour: '#3a3128' },
+    look: { hairColour: '#3a3128' },
   },
   {
     id: 'ales-gillian',
-    name: 'Ales',
+    name: 'Alice',
     role: 'Junior squad member',
     relationship: 'Andrew’s daughter',
     age: 13,
+    belt: 'blue',
+    skillTier: 'intermediate',
+    portraitFile: 'alice-blue-belt.png',
+    portraitAlt:
+      'Alice, a junior blue-belt karateka with a blonde ponytail and a red headband, in a white gi and a forward guard.',
     biography:
-      'Ales is the quickest mover in the Hobart squad and trains in the supervised junior class. She closes distance before an opponent has finished setting their stance, and rarely stands still long enough to be countered.',
+      'Alice is the quickest mover in the Hobart squad and trains in the supervised junior class. She closes distance before an opponent has finished setting their stance, and rarely stands still long enough to be countered.',
     fightingStyle: 'Fast and agile karate',
     strengths: 'Footwork, entry speed, evasion',
     weaknesses: 'Light on power; must score many times to win a round',
@@ -195,15 +242,17 @@ const HOBART: readonly FighterSeed[] = [
       effect: 'strike',
     },
     aiProfile: 'evasive',
-    look: { giColour: '#f4f6fa', speedScale: 1.15, hairColour: '#5a3b22' },
+    look: { giColour: '#f4f6fa', speedScale: 1.15, hairColour: '#e6c65a' },
   },
   {
-    id: 'cathryn',
-    name: 'Cathryn',
+    id: 'bea-halloran',
+    name: 'Bea Halloran',
     role: 'Junior squad member',
     age: 14,
+    belt: 'green',
+    skillTier: 'intermediate',
     biography:
-      'Cathryn trains in the supervised junior class and is the squad’s most patient defender. She reads an incoming technique early, takes it on the guard or slips it, and answers immediately.',
+      'Bea joined the Hobart junior class from the club’s after-school programme and is its most patient defender. She reads an incoming technique early, takes it on the guard or slips it, and answers immediately.',
     fightingStyle: 'Defensive karate',
     strengths: 'Guard discipline, counter timing, composure',
     weaknesses: 'Waits for openings rather than making them',
@@ -220,11 +269,16 @@ const HOBART: readonly FighterSeed[] = [
   {
     id: 'mr-graham',
     name: 'Mr Graham',
-    role: 'Head coach and senior competitor',
+    role: 'Head coach and masters-division competitor',
     relationship: 'Andrew’s father',
     age: 67,
+    belt: 'black',
+    skillTier: 'expert',
+    portraitFile: 'mr-graham-black-belt.png',
+    portraitAlt:
+      'Mr Graham, a senior black-belt master with a white beard, in a white gi jacket and black trousers, holding an open-hand blocking stance.',
     biography:
-      'Mr Graham runs the Hobart training hall and still competes in the senior class. His karate is traditional and economical: a tight guard, correct distance, and nothing wasted.',
+      'Mr Graham runs the Hobart training hall and still competes in the masters division. His karate is traditional and economical: a tight guard, correct distance, and nothing wasted.',
     fightingStyle: 'Traditional karate',
     strengths: 'Guard endurance, distance control, experience',
     weaknesses: 'Slowest mover in the division',
@@ -236,7 +290,7 @@ const HOBART: readonly FighterSeed[] = [
       effect: 'counter',
     },
     aiProfile: 'defensive',
-    look: { beltColour: '#141922', hairColour: '#b9b4ac' },
+    look: { hairColour: '#e8e4dc' },
   },
   {
     id: 'janet-gillian',
@@ -244,6 +298,11 @@ const HOBART: readonly FighterSeed[] = [
     role: 'Squad strategist',
     relationship: 'Andrew’s wife',
     age: 39,
+    belt: 'blue',
+    skillTier: 'intermediate',
+    portraitFile: 'janet-blue-belt.png',
+    portraitAlt:
+      'Janet, an adult blue-belt karateka with a brown ponytail, in a white gi with both fists raised in guard.',
     biography:
       'Janet plans the squad’s approach to each tie and fights a precise technical game drawn from both karate and kung fu. She scores with accuracy rather than pressure.',
     fightingStyle: 'Technical karate and kung fu',
@@ -257,16 +316,21 @@ const HOBART: readonly FighterSeed[] = [
       effect: 'counter',
     },
     aiProfile: 'technical',
-    look: { hairColour: '#2b2119' },
+    look: { hairColour: '#5a3a24' },
   },
   {
     id: 'mrs-graham',
-    name: 'Mrs Graham',
-    role: 'Senior competitor',
+    name: 'Susan Gillan',
+    role: 'Senior mentor and masters-division competitor',
     relationship: 'Andrew’s mother',
     age: 64,
+    belt: 'black',
+    skillTier: 'expert',
+    portraitFile: 'susan-gillan-black-belt.png',
+    portraitAlt:
+      'Susan Gillan, a senior black-belt karateka with white hair in a bun, in a white gi with red trim and an open guiding hand.',
     biography:
-      'Mrs Graham competes in the senior class and teaches the club’s balance and timing work. Her defensive karate is built on staying centred and answering late rather than early.',
+      'Susan competes in the masters division and teaches the club’s balance and timing work. Her defensive karate is built on staying centred and answering late rather than early.',
     fightingStyle: 'Traditional defensive karate',
     strengths: 'Balance, late counters, unshakeable stance',
     weaknesses: 'Limited top speed over a long round',
@@ -278,7 +342,7 @@ const HOBART: readonly FighterSeed[] = [
       effect: 'sweep',
     },
     aiProfile: 'defensive',
-    look: { hairColour: '#cfcac2' },
+    look: { hairColour: '#eceae4' },
   },
 ];
 
@@ -290,6 +354,8 @@ const LAUNCESTON: readonly FighterSeed[] = [
     name: 'Rowan Delacourt',
     role: 'Club captain',
     age: 34,
+    belt: 'black',
+    skillTier: 'advanced',
     biography:
       'Rowan captains the Tamar squad and is the club’s clearest expression of its philosophy: no favourite range, no favourite technique, and no obvious plan to scout.',
     fightingStyle: 'Adaptive karate',
@@ -310,6 +376,8 @@ const LAUNCESTON: readonly FighterSeed[] = [
     name: 'Tessa Brightwell',
     role: 'Junior squad member',
     age: 13,
+    belt: 'blue',
+    skillTier: 'intermediate',
     biography:
       'Tessa came up through the Tamar junior programme and has already been asked to fight at three different ranges in a single tie. She enjoys the puzzle more than the winning.',
     fightingStyle: 'Adaptive karate',
@@ -330,6 +398,8 @@ const LAUNCESTON: readonly FighterSeed[] = [
     name: 'Kai Nordholm',
     role: 'Junior squad member',
     age: 14,
+    belt: 'green',
+    skillTier: 'intermediate',
     biography:
       'Kai is the most physically confident junior in the northern clubs and prefers to take the centre of the mat early. His coaches are teaching him when not to.',
     fightingStyle: 'Forward-pressure karate',
@@ -350,6 +420,8 @@ const LAUNCESTON: readonly FighterSeed[] = [
     name: 'Ellis Vance',
     role: 'Senior competitor',
     age: 61,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Ellis has fought for Launceston in four decades and still keeps the tidiest guard in the senior division. He is the club’s benchmark for correct distance.',
     fightingStyle: 'Traditional karate',
@@ -370,6 +442,8 @@ const LAUNCESTON: readonly FighterSeed[] = [
     name: 'Priya Raman',
     role: 'Technical specialist',
     age: 29,
+    belt: 'brown',
+    skillTier: 'advanced',
     biography:
       'Priya scouts every opponent the club will meet and fights the game she has planned. She is the reason Launceston are rarely surprised twice by the same technique.',
     fightingStyle: 'Analytical karate',
@@ -390,6 +464,8 @@ const LAUNCESTON: readonly FighterSeed[] = [
     name: 'Marta Iversen',
     role: 'Senior competitor',
     age: 58,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Marta returned to competition after two decades coaching and brought a coach’s eye with her. She reads the round two techniques ahead of most opponents.',
     fightingStyle: 'Traditional counter karate',
@@ -415,6 +491,8 @@ const DEVONPORT: readonly FighterSeed[] = [
     name: 'Nico Alvarez',
     role: 'Club captain',
     age: 27,
+    belt: 'black',
+    skillTier: 'advanced',
     biography:
       'Nico sets the tempo for the coastal club, which is to say he sets it high. He would rather score four times moving than once standing still.',
     fightingStyle: 'Mobile karate',
@@ -435,6 +513,8 @@ const DEVONPORT: readonly FighterSeed[] = [
     name: 'Freya Lindqvist',
     role: 'Junior squad member',
     age: 12,
+    belt: 'blue',
+    skillTier: 'intermediate',
     biography:
       'Freya is the youngest competitor on the circuit and the hardest junior to pin down. Her coaches describe her footwork as already better than her age.',
     fightingStyle: 'Evasive karate',
@@ -455,6 +535,8 @@ const DEVONPORT: readonly FighterSeed[] = [
     name: 'Devon Okafor',
     role: 'Junior squad member',
     age: 14,
+    belt: 'green',
+    skillTier: 'intermediate',
     biography:
       'Devon joined from the club’s athletics programme and brought the sprint start with him. He is at his best in the first thirty seconds of a round.',
     fightingStyle: 'Explosive karate',
@@ -475,6 +557,8 @@ const DEVONPORT: readonly FighterSeed[] = [
     name: 'Sam Whitlock',
     role: 'Senior competitor',
     age: 59,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Sam has run the club’s Saturday session for eighteen years and still competes to prove the footwork drills work. They usually do.',
     fightingStyle: 'Traditional mobile karate',
@@ -495,6 +579,8 @@ const DEVONPORT: readonly FighterSeed[] = [
     name: 'Lena Petrov',
     role: 'Squad member',
     age: 25,
+    belt: 'brown',
+    skillTier: 'advanced',
     biography:
       'Lena is the quickest adult on the north-west coast and scores from angles other competitors do not think are available.',
     fightingStyle: 'Angular karate',
@@ -515,6 +601,8 @@ const DEVONPORT: readonly FighterSeed[] = [
     name: 'Ruth Callender',
     role: 'Senior competitor',
     age: 56,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Ruth came to karate late and treats every round as a problem with a tidy solution. She is the club’s most reliable scorer under pressure.',
     fightingStyle: 'Economical karate',
@@ -540,6 +628,8 @@ const BURNIE: readonly FighterSeed[] = [
     name: 'Bram Hollis',
     role: 'Club captain',
     age: 33,
+    belt: 'black',
+    skillTier: 'advanced',
     biography:
       'Bram has not been moved off the centre of a mat in three seasons. Opponents describe fighting him as running out of room very slowly.',
     fightingStyle: 'Pressure karate',
@@ -560,6 +650,8 @@ const BURNIE: readonly FighterSeed[] = [
     name: 'Otis Kendrick',
     role: 'Junior squad member',
     age: 14,
+    belt: 'blue',
+    skillTier: 'intermediate',
     biography:
       'Otis fights the club style already: guard up, feet planted, and a counter waiting. His coaches are working on adding a second gear.',
     fightingStyle: 'Defensive karate',
@@ -580,6 +672,8 @@ const BURNIE: readonly FighterSeed[] = [
     name: 'Nadia Suvari',
     role: 'Junior squad member',
     age: 13,
+    belt: 'green',
+    skillTier: 'intermediate',
     biography:
       'Nadia is the exception in a defensive club — she leads, and she leads hard. The squad build their junior tactics around the space she creates.',
     fightingStyle: 'Aggressive karate',
@@ -600,6 +694,8 @@ const BURNIE: readonly FighterSeed[] = [
     name: 'Greta Lund',
     role: 'Senior competitor',
     age: 62,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Greta was Burnie’s first state-level competitor and still sets the club’s standard for a guard that does not break under sustained pressure.',
     fightingStyle: 'Traditional defensive karate',
@@ -620,6 +716,8 @@ const BURNIE: readonly FighterSeed[] = [
     name: 'Elias Renn',
     role: 'Squad member',
     age: 30,
+    belt: 'brown',
+    skillTier: 'advanced',
     biography:
       'Elias is the lightest fighter in the Burnie squad and the one who does most of the moving. He is the club’s answer to fast opponents.',
     fightingStyle: 'Counter karate',
@@ -640,6 +738,8 @@ const BURNIE: readonly FighterSeed[] = [
     name: 'Owen Marsh',
     role: 'Senior competitor',
     age: 57,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Owen spent twenty years in the club’s corner before returning to compete. He knows exactly how the Burnie game is supposed to look.',
     fightingStyle: 'Traditional karate',
@@ -665,6 +765,8 @@ const SMITHTON: readonly FighterSeed[] = [
     name: 'Ines Toledo',
     role: 'Club captain',
     age: 31,
+    belt: 'black',
+    skillTier: 'advanced',
     biography:
       'Ines captains the smallest squad on the circuit and is the reason they are never outlasted. She fights the third round exactly as she fought the first.',
     fightingStyle: 'Endurance karate',
@@ -685,6 +787,8 @@ const SMITHTON: readonly FighterSeed[] = [
     name: 'Jonah Pike',
     role: 'Junior squad member',
     age: 13,
+    belt: 'blue',
+    skillTier: 'intermediate',
     biography:
       'Jonah trains after school and has never once asked to stop early. His coaches say the conditioning will still be there when the technique catches up.',
     fightingStyle: 'Endurance karate',
@@ -705,6 +809,8 @@ const SMITHTON: readonly FighterSeed[] = [
     name: 'Aroha Nikau',
     role: 'Junior squad member',
     age: 14,
+    belt: 'green',
+    skillTier: 'intermediate',
     biography:
       'Aroha is the squad’s most complete junior and the one the club expects to captain it. She already fights the whole round rather than the exchange in front of her.',
     fightingStyle: 'Patient karate',
@@ -725,6 +831,8 @@ const SMITHTON: readonly FighterSeed[] = [
     name: 'Colm Farrow',
     role: 'Senior competitor',
     age: 60,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Colm drove the club’s competitors to every away tie for a decade before returning to the mat himself. He is the calmest presence in any venue.',
     fightingStyle: 'Traditional karate',
@@ -745,6 +853,8 @@ const SMITHTON: readonly FighterSeed[] = [
     name: 'Yara Bassam',
     role: 'Squad member',
     age: 26,
+    belt: 'brown',
+    skillTier: 'advanced',
     biography:
       'Yara moved to the north-west for work and made the club’s numbers viable again. She is the fastest of the Smithton adults and their pressure option.',
     fightingStyle: 'Pressure karate',
@@ -765,6 +875,8 @@ const SMITHTON: readonly FighterSeed[] = [
     name: 'Mairead Quinn',
     role: 'Senior competitor',
     age: 55,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Mairead has competed for Smithton since the club had four members. She is the reason it still has six.',
     fightingStyle: 'Traditional karate',
@@ -790,6 +902,8 @@ const ROSEBERY: readonly FighterSeed[] = [
     name: 'Zane Corrigan',
     role: 'Club captain',
     age: 32,
+    belt: 'black',
+    skillTier: 'advanced',
     biography:
       'Zane cross-trains karate and kung fu in the same session and fights like it. Opponents rarely know which system the next technique is coming from.',
     fightingStyle: 'Mixed karate and kung fu',
@@ -810,6 +924,8 @@ const ROSEBERY: readonly FighterSeed[] = [
     name: 'Suki Tanaka-Reid',
     role: 'Junior squad member',
     age: 14,
+    belt: 'blue',
+    skillTier: 'intermediate',
     biography:
       'Suki trains in both of the club’s systems and switches between them mid-round, which is unusual for a junior and extremely difficult to scout.',
     fightingStyle: 'Mixed karate and kung fu',
@@ -830,6 +946,8 @@ const ROSEBERY: readonly FighterSeed[] = [
     name: 'Milo Bertrand',
     role: 'Junior squad member',
     age: 13,
+    belt: 'green',
+    skillTier: 'intermediate',
     biography:
       'Milo is the club’s most direct junior and its reminder that the counter game still needs somebody willing to lead.',
     fightingStyle: 'Direct karate',
@@ -850,6 +968,8 @@ const ROSEBERY: readonly FighterSeed[] = [
     name: 'Vera Ostrowski',
     role: 'Senior competitor',
     age: 63,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Vera has fought on the west coast longer than the arena has stood. Her counter timing is the club’s teaching example.',
     fightingStyle: 'Traditional counter karate',
@@ -870,6 +990,8 @@ const ROSEBERY: readonly FighterSeed[] = [
     name: 'Theo Nakamura',
     role: 'Squad member',
     age: 28,
+    belt: 'brown',
+    skillTier: 'advanced',
     biography:
       'Theo is the club’s specialist in the low line and the reason opponents keep their weight back against Rosebery.',
     fightingStyle: 'Low-line kung fu',
@@ -890,6 +1012,8 @@ const ROSEBERY: readonly FighterSeed[] = [
     name: 'Hugh Ballantyne',
     role: 'Senior competitor',
     age: 59,
+    belt: 'black',
+    skillTier: 'expert',
     biography:
       'Hugh keeps the arena, coaches the juniors and still competes. On the west coast that is considered a normal amount of work.',
     fightingStyle: 'Traditional karate',

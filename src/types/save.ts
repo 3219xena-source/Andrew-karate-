@@ -5,8 +5,9 @@
  * store personal or sensitive information — no names typed by the player, no
  * contact details, no analytics identifiers.
  *
- * Version 2 adds the Stage 2 season. Version 1 saves are migrated forward by
- * `systems/save/migrations.ts`; see `docs/SAVE_MIGRATION.md`.
+ * Version 2 added the Stage 2 season. Version 3 re-cast the Hobart roster.
+ * Older saves are migrated forward by `systems/save/migrations.ts`; see
+ * `docs/SAVE_MIGRATION.md`.
  */
 
 import type { Difficulty } from '../systems/ai/opponentAI.ts';
@@ -15,7 +16,7 @@ import type { BoutResult, SeasonState } from './season.ts';
 import type { TeamId } from './team.ts';
 
 /** Bump whenever `SaveData` changes, and add a migration. */
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export const SAVE_STORAGE_KEY = 'tmac.save.v1';
 

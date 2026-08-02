@@ -31,6 +31,44 @@ export const WEIGHT_CLASS_LABELS: Record<WeightClass, string> = {
   heavyweight: 'Heavyweight',
 };
 
+/**
+ * Belt grade. Cosmetic and informational: it colours the procedural figure and
+ * is shown on the roster, but it does not itself change combat handling — the
+ * authored ratings do that.
+ */
+export type Belt = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black';
+
+export const BELT_LABELS: Record<Belt, string> = {
+  white: 'White belt',
+  yellow: 'Yellow belt',
+  orange: 'Orange belt',
+  green: 'Green belt',
+  blue: 'Blue belt',
+  brown: 'Brown belt',
+  black: 'Black belt',
+};
+
+/** Hex colour drawn for each belt by the procedural figure. */
+export const BELT_COLOURS: Record<Belt, string> = {
+  white: '#e8ecf2',
+  yellow: '#e3c545',
+  orange: '#e08a3a',
+  green: '#3f9b62',
+  blue: '#2f5fd0',
+  brown: '#6b4630',
+  black: '#12161d',
+};
+
+/** Broad competitive standard, shown alongside the belt. */
+export type SkillTier = 'novice' | 'intermediate' | 'advanced' | 'expert';
+
+export const SKILL_TIER_LABELS: Record<SkillTier, string> = {
+  novice: 'Novice',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+  expert: 'Expert',
+};
+
 /** Ratings are authored on a 1..100 scale and rendered as proportional bars. */
 export type Rating = number;
 
@@ -121,13 +159,19 @@ export interface SpecialMove {
 
 /** Provenance of a fighter's artwork, mirrored into `docs/ASSET_REGISTER.md`. */
 export interface ArtworkProvenance {
-  /** How the visible art was produced. */
-  readonly method: 'procedural';
-  /** Who owns it. */
-  readonly owner: 'project';
-  readonly licence: 'MIT';
-  /** True while the art is a stand-in for commissioned work. */
+  /**
+   * How the visible art was produced.
+   * `procedural` — drawn at runtime by the game from configured colours.
+   * `supplied`   — an image file provided by the project owner.
+   */
+  readonly method: 'procedural' | 'supplied';
+  /** Who owns it. `owner` means the project owner supplied and cleared it. */
+  readonly owner: 'project' | 'owner-supplied';
+  readonly licence: 'MIT' | 'owner-supplied';
+  /** True while the art is a stand-in for final artwork. */
   readonly placeholder: boolean;
+  /** Alt text used wherever the image is rendered. */
+  readonly altText?: string;
 }
 
 export interface Fighter {
@@ -142,6 +186,8 @@ export interface Fighter {
   /** In-game age. Fictional, like every other field on this record. */
   readonly age: number;
   readonly weightClass: WeightClass;
+  readonly belt: Belt;
+  readonly skillTier: SkillTier;
   readonly biography: string;
   readonly fightingStyle: string;
   readonly strengths: string;
