@@ -86,7 +86,7 @@ export function SettingsScreen() {
   const saveStatus = useGameStore((state) => state.saveStatus);
   const savePersisting = useGameStore((state) => state.savePersisting);
   const setAudioSettings = useGameStore((state) => state.setAudioSettings);
-  const setReducedMotion = useGameStore((state) => state.setReducedMotion);
+  const setAccessibility = useGameStore((state) => state.setAccessibility);
   const closeSettings = useGameStore((state) => state.closeSettings);
   const resetProgress = useGameStore((state) => state.resetProgress);
 
@@ -171,7 +171,7 @@ export function SettingsScreen() {
             label="Reduce motion"
             hint="Suppresses non-essential animation and transitions"
             checked={accessibility.reducedMotion}
-            onChange={setReducedMotion}
+            onChange={(value) => setAccessibility({ reducedMotion: value })}
             testId="setting-reduced-motion"
           />
           <p className="subtle" style={{ marginTop: 'var(--space-3)' }}>

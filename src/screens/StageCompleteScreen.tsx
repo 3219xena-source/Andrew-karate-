@@ -21,6 +21,7 @@ export function StageCompleteScreen() {
   const completedCount = useGameStore((state) => state.progress.completedObjectiveIds.length);
   const goToScreen = useGameStore((state) => state.goToScreen);
   const restartTutorial = useGameStore((state) => state.restartTutorial);
+  const startSeason = useGameStore((state) => state.startSeason);
 
   const team = getTeam(teamId);
 
@@ -38,11 +39,11 @@ export function StageCompleteScreen() {
           </Button>
           <Button
             variant="primary"
-            onClick={() => goToScreen('tournament')}
+            onClick={startSeason}
             disabled={!unlocked}
             data-testid="enter-tournament"
           >
-            First tournament match
+            Start the season
           </Button>
         </>
       }
@@ -94,7 +95,7 @@ export function StageCompleteScreen() {
             <p className="completion__stat-value" data-testid="tournament-unlock-state">
               {unlocked ? 'Unlocked' : 'Locked'}
             </p>
-            <p className="completion__stat-label">First tournament match</p>
+            <p className="completion__stat-label">Championship season</p>
           </div>
           <div className="completion__stat">
             <p className="completion__stat-value">Saved</p>
@@ -104,12 +105,12 @@ export function StageCompleteScreen() {
 
         <section className="panel">
           <p className="panel__eyebrow">What happens next</p>
-          <h2 className="panel__title">Stage 2 — the first opponent</h2>
+          <h2 className="panel__title">The championship season</h2>
           <p className="text-small muted">
-            The first tournament match is unlocked as a <strong>placeholder</strong>. Stage 2 adds the
-            opponent, basic opponent AI, round timing, referee rules and scoring; Stage 1 deliberately
-            does not include them. Selecting the tournament now opens a summary of what is coming rather
-            than a playable match.
+            Six events across Tasmania: five league ties against each rival club, then the
+            championship final. Every tie is six sequential one-versus-one bouts, best of three
+            rounds, fought against computer-controlled opponents. You control every fighter from your
+            own club, one bout at a time.
           </p>
         </section>
       </div>

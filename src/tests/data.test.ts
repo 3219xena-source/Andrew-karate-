@@ -61,10 +61,18 @@ describe('team data', () => {
     expect(isKnownTeamId(42)).toBe(false);
   });
 
-  it('marks exactly one club as the featured, fully authored club', () => {
-    const featured = TEAMS.filter((team) => team.status === 'featured');
-    expect(featured).toHaveLength(1);
-    expect(featured[0]?.id).toBe(FEATURED_TEAM_ID);
+  it('gives every club a coach, colours, a venue and a difficulty band', () => {
+    for (const team of TEAMS) {
+      expect(team.coach.length).toBeGreaterThan(0);
+      expect(team.colours.primary).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(team.colours.secondary).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(team.venueId.length).toBeGreaterThan(0);
+      expect(['approachable', 'competitive', 'formidable']).toContain(team.difficulty);
+    }
+  });
+
+  it('names the default player club, which every club can replace', () => {
+    expect(TEAMS.some((team) => team.id === FEATURED_TEAM_ID)).toBe(true);
   });
 });
 
@@ -116,12 +124,10 @@ describe('fighter data', () => {
     expect(FIGHTERS.every((fighter) => fighter.voice.enabled === false)).toBe(true);
   });
 
-  it('flags every non-featured roster entry as an unselectable placeholder', () => {
-    const others = FIGHTERS.filter((fighter) => fighter.teamId !== FEATURED_TEAM_ID);
-    expect(others).toHaveLength(30);
-    expect(others.every((fighter) => fighter.isPlaceholder)).toBe(true);
-    expect(others.every((fighter) => !fighter.unlocked)).toBe(true);
-    expect(others.every((fighter) => isSelectableFighterId(fighter.id) === false)).toBe(true);
+  it('authors every fighter in every club — no placeholders remain', () => {
+    expect(FIGHTERS.every((fighter) => !fighter.isPlaceholder)).toBe(true);
+    expect(FIGHTERS.every((fighter) => fighter.unlocked)).toBe(true);
+    expect(FIGHTERS.every((fighter) => isSelectableFighterId(fighter.id))).toBe(true);
   });
 
   it('gives every fighter a unique id', () => {

@@ -120,9 +120,7 @@ export function TasmaniaMap({
                   {team.location}
                 </span>
                 <span className="visually-hidden">
-                  {`${team.location}. ${team.name}. Speciality: ${team.speciality}. ${
-                    team.status === 'featured' ? 'Featured club.' : 'Roster placeholder for Stage 2.'
-                  }`}
+                  {`${team.location}. ${team.name}. Coach ${team.coach}. Speciality: ${team.speciality}.`}
                 </span>
               </button>
             </li>

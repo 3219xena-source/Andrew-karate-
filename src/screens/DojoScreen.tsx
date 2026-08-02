@@ -238,7 +238,7 @@ export function DojoScreen() {
             The dojo needs a selected fighter before a session can begin. Choose a club and a fighter,
             then return here.
           </p>
-          <Button variant="primary" onClick={() => goToScreen('map')}>
+          <Button variant="primary" onClick={() => goToScreen('club-select')}>
             Back to the map
           </Button>
         </div>

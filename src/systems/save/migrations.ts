@@ -5,9 +5,7 @@
  * in sequence, so a version-1 save can reach the current version through any
  * number of intermediate steps.
  *
- * There are no migrations yet — version 1 is the first published schema. The
- * machinery exists now so that the first schema change is a data change rather
- * than an architectural one.
+ * See `docs/SAVE_MIGRATION.md` for the field-by-field mapping.
  */
 
 import { SAVE_VERSION } from '../../types/save.ts';
@@ -16,9 +14,43 @@ export type Migration = (input: Record<string, unknown>) => Record<string, unkno
 
 /** Keyed by the version being migrated FROM. */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
-  // Example of the intended shape, for whoever adds version 2:
-  //
-  // 1: (input) => ({ ...input, version: 2, roster: { unlocked: [] } }),
+  /**
+   * 1 → 2: Stage 1 (training only) to Stage 2 (full season).
+   *
+   * Everything a version-1 save held is kept: audio settings, accessibility
+   * settings and the whole training-progress block carry over untouched. The
+   * new Stage 2 fields are added at their defaults, and the club the player
+   * trained with is promoted to their season club so that a returning player
+   * keeps their identity rather than starting from the club-selection screen.
+   */
+  1: (input) => {
+    const progress =
+      typeof input.progress === 'object' && input.progress !== null
+        ? (input.progress as Record<string, unknown>)
+        : {};
+    const accessibility =
+      typeof input.accessibility === 'object' && input.accessibility !== null
+        ? (input.accessibility as Record<string, unknown>)
+        : {};
+
+    return {
+      ...input,
+      version: 2,
+      // The Stage 1 club becomes the Stage 2 season club.
+      playerTeamId: typeof progress.selectedTeamId === 'string' ? progress.selectedTeamId : null,
+      difficulty: 'standard',
+      // No season existed in Stage 1; the player starts a fresh one.
+      season: null,
+      fighterRecords: {},
+      activeEvent: null,
+      accessibility: {
+        ...accessibility,
+        // Fields introduced in version 2, defaulted to on.
+        screenShake: true,
+        announcementCaptions: true,
+      },
+    };
+  },
 };
 
 /**

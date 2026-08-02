@@ -1,10 +1,9 @@
 /**
  * Fighter data model.
  *
- * All fighters — playable, placeholder and future opponents — use this single
- * record shape. Portraits, models, animations and voice lines are referenced by
- * configuration so that production assets can be dropped in later without any
- * component changes.
+ * All fighters use this single record shape. Portraits, models, animations and
+ * voice lines are referenced by configuration so that production assets can be
+ * dropped in later without any component changes.
  *
  * IMPORTANT: every fighter in this game is a FICTIONALISED GAME AVATAR. Records
  * must not assert the real appearance, martial-arts ability, medical history,
@@ -14,104 +13,157 @@
 import type { TeamId } from './team.ts';
 
 /**
- * Competition class. Junior characters train under supervision and are matched
- * only within their own class — see `docs/KNOWN_LIMITATIONS.md` for the Stage 2
- * competition-class rules.
+ * Competition class. Junior competitors are only ever matched against other
+ * juniors — see `matchmaking.ts`, which enforces this and is covered by tests.
  */
 export type AgeClassification = 'junior' | 'adult' | 'senior';
+
+/**
+ * Weight division. These are the game's own fictional arcade divisions, not
+ * the divisions of any real sanctioning body.
+ */
+export type WeightClass = 'junior-light' | 'lightweight' | 'middleweight' | 'heavyweight';
+
+export const WEIGHT_CLASS_LABELS: Record<WeightClass, string> = {
+  'junior-light': 'Junior',
+  lightweight: 'Lightweight',
+  middleweight: 'Middleweight',
+  heavyweight: 'Heavyweight',
+};
 
 /** Ratings are authored on a 1..100 scale and rendered as proportional bars. */
 export type Rating = number;
 
+/**
+ * The six authored ratings.
+ *
+ * `strength` IS the fighter's power rating — it scales attack damage. The key
+ * kept its Stage 1 name so that saves, tests and UI written against it stay
+ * valid; the interface labels it "Power".
+ */
 export interface FighterStats {
   readonly strength: Rating;
   readonly speed: Rating;
   readonly defence: Rating;
   readonly technique: Rating;
   readonly stamina: Rating;
+  readonly agility: Rating;
 }
 
-/** Keys of `FighterStats`, useful for generic stat rendering. */
-export const STAT_KEYS = ['strength', 'speed', 'defence', 'technique', 'stamina'] as const;
+export const STAT_KEYS = [
+  'strength',
+  'speed',
+  'defence',
+  'technique',
+  'stamina',
+  'agility',
+] as const;
 export type StatKey = (typeof STAT_KEYS)[number];
 
 export const STAT_LABELS: Record<StatKey, string> = {
-  strength: 'Strength',
+  strength: 'Power',
   speed: 'Speed',
   defence: 'Defence',
   technique: 'Technique',
   stamina: 'Stamina',
+  agility: 'Agility',
 };
 
 /**
- * Animation configuration. Stage 1 ships a single procedural animation set
- * (`stance:procedural-karate`) used by every fighter; the field exists so that
- * per-fighter sprite sheets can be introduced without a data migration.
+ * How the AI plays this fighter. Profiles change spacing, aggression and
+ * technique selection; they never grant hidden advantages.
  */
-export interface AnimationConfig {
-  /** Identifier of the animation set to use. */
-  readonly set: string;
-  /** Multiplier applied to animation playback speed (1 = authored speed). */
-  readonly speedScale: number;
-  /** Belt colour used by the procedural renderer. */
-  readonly beltColour: string;
-  /** Gi (uniform) colour used by the procedural renderer. */
-  readonly giColour: string;
-  /** Accent colour for trim and headband. */
-  readonly accentColour: string;
-}
+export type AiProfile =
+  | 'aggressive'
+  | 'defensive'
+  | 'balanced'
+  | 'evasive'
+  | 'technical'
+  | 'powerhouse';
 
 /**
- * Voice-line configuration. Stage 1 has no recorded voice acting; `enabled` is
- * false for every fighter and the fields document the eventual contract.
+ * Animation configuration. Stage 2 ships one procedural animation set used by
+ * every fighter; the field exists so per-fighter sprite sheets can be
+ * introduced without a data migration.
  */
+export interface AnimationConfig {
+  readonly set: string;
+  readonly speedScale: number;
+  readonly beltColour: string;
+  readonly giColour: string;
+  readonly accentColour: string;
+  /** Skin tone used by the procedural figure. Purely a visual variation. */
+  readonly skinTone: string;
+  /** Hair colour used by the procedural figure. */
+  readonly hairColour: string;
+  /** Silhouette variation: build affects the drawn figure's proportions. */
+  readonly build: 'light' | 'medium' | 'heavy';
+}
+
+/** Voice-line configuration. No voice acting is recorded in this build. */
 export interface VoiceConfig {
   readonly enabled: boolean;
-  /** Directory that will hold this fighter's voice clips. */
   readonly bank: string;
-  /** Clip identifiers expected in that bank. */
   readonly lines: readonly string[];
 }
 
-export interface SpecialAbility {
+/**
+ * A fighter's signature technique, spent from the power meter. `damageScale`
+ * multiplies the base power-attack damage in `match/constants.ts`.
+ */
+export interface SpecialMove {
   readonly name: string;
   readonly description: string;
+  readonly damageScale: number;
+  /** Visual treatment used by the arena renderer for the power flash. */
+  readonly effect: 'strike' | 'sweep' | 'counter' | 'flurry';
+}
+
+/** Provenance of a fighter's artwork, mirrored into `docs/ASSET_REGISTER.md`. */
+export interface ArtworkProvenance {
+  /** How the visible art was produced. */
+  readonly method: 'procedural';
+  /** Who owns it. */
+  readonly owner: 'project';
+  readonly licence: 'MIT';
+  /** True while the art is a stand-in for commissioned work. */
+  readonly placeholder: boolean;
 }
 
 export interface Fighter {
   readonly id: string;
   readonly name: string;
   readonly teamId: TeamId;
-  /** Role within the team, e.g. "Team leader". */
+  /** Position in the club's bout order, 0-based. Determines who fights whom. */
+  readonly slot: number;
   readonly role: string;
-  /** Family or club relationship shown on the profile panel. Optional. */
   readonly relationship?: string;
   readonly ageClassification: AgeClassification;
-  /** Two-to-four sentence in-game biography. */
+  /** In-game age. Fictional, like every other field on this record. */
+  readonly age: number;
+  readonly weightClass: WeightClass;
   readonly biography: string;
   readonly fightingStyle: string;
+  readonly strengths: string;
+  readonly weaknesses: string;
   readonly stats: FighterStats;
-  readonly specialAbility: SpecialAbility;
-  /**
-   * Portrait asset path. Stage 1 uses `null`, which makes the UI render the
-   * procedural placeholder portrait instead of a missing-image box.
-   */
+  readonly specialAbility: SpecialMove;
+  readonly aiProfile: AiProfile;
   readonly portraitAsset: string | null;
-  /** Character-model asset path. `null` selects the procedural canvas fighter. */
   readonly modelAsset: string | null;
   readonly animation: AnimationConfig;
   readonly voice: VoiceConfig;
-  /** Whether the fighter can be selected in the current build. */
+  readonly artwork: ArtworkProvenance;
   readonly unlocked: boolean;
-  /**
-   * True for auto-generated roster placeholders. The UI labels these clearly so
-   * that a placeholder is never mistaken for authored content.
-   */
   readonly isPlaceholder: boolean;
-  /**
-   * True when the fighter is fully driven by the Stage 1 dojo controller.
-   * Stage 1 limitation: all featured fighters share one controller and one
-   * procedural animation set; their stats change handling, not their moveset.
-   */
   readonly playable: boolean;
 }
+
+/** A fighter's running competition record, tracked in the save file. */
+export interface FighterRecord {
+  readonly wins: number;
+  readonly losses: number;
+  readonly knockouts: number;
+}
+
+export const EMPTY_FIGHTER_RECORD: FighterRecord = { wins: 0, losses: 0, knockouts: 0 };

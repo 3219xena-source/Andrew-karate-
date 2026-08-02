@@ -30,6 +30,13 @@ function resetStore(): void {
     notices: [],
     previewFighterId: null,
     audioUnlocked: false,
+    playerTeamId: null,
+    season: null,
+    fighterRecords: {},
+    activeEventId: null,
+    activeBout: null,
+    lastBoutResult: null,
+    lastEventResult: null,
   });
 }
 
@@ -54,7 +61,7 @@ describe('navigation', () => {
     useGameStore.getState().startNewGame();
 
     const state = useGameStore.getState();
-    expect(state.screen).toBe('map');
+    expect(state.screen).toBe('club-select');
     expect(state.progress.selectedTeamId).toBeNull();
     expect(state.progress.completedObjectiveIds).toEqual([]);
   });
@@ -68,20 +75,21 @@ describe('navigation', () => {
   });
 
   it('returns to the previous screen when settings are dismissed', () => {
-    useGameStore.getState().goToScreen('map');
+    useGameStore.getState().goToScreen('club-select');
     useGameStore.getState().openSettings();
     expect(useGameStore.getState().screen).toBe('settings');
     useGameStore.getState().closeSettings();
-    expect(useGameStore.getState().screen).toBe('map');
+    expect(useGameStore.getState().screen).toBe('club-select');
   });
 
   it('resumes at the furthest point the save justifies', () => {
     const store = useGameStore.getState();
 
     store.continueGame();
-    expect(useGameStore.getState().screen).toBe('map');
+    expect(useGameStore.getState().screen).toBe('club-select');
 
     useGameStore.setState((state) => ({
+      playerTeamId: 'hobart',
       progress: { ...state.progress, selectedTeamId: 'hobart' },
     }));
     useGameStore.getState().continueGame();
@@ -137,11 +145,12 @@ describe('team and fighter selection', () => {
     expect(state.screen).toBe('dojo');
   });
 
-  it('refuses a locked placeholder fighter', () => {
-    useGameStore.getState().selectFighter('burnie-recruit-1');
+  it('lets the player represent any club, not just the default', () => {
+    useGameStore.getState().selectFighter('bram-hollis');
     const state = useGameStore.getState();
-    expect(state.progress.selectedFighterId).toBeNull();
-    expect(state.screen).not.toBe('dojo');
+    expect(state.progress.selectedFighterId).toBe('bram-hollis');
+    expect(state.playerTeamId).toBe('burnie');
+    expect(state.screen).toBe('dojo');
   });
 
   it('refuses an unknown fighter id', () => {
@@ -169,7 +178,7 @@ describe('audio preferences', () => {
   });
 
   it('persists the reduced-motion preference', () => {
-    useGameStore.getState().setReducedMotion(true);
+    useGameStore.getState().setAccessibility({ reducedMotion: true });
     expect(loadSave().data.accessibility.reducedMotion).toBe(true);
   });
 
@@ -309,5 +318,8 @@ function resetStoreKeepingStorage(): void {
     progress: defaults.progress,
     notices: [],
     previewFighterId: null,
+    playerTeamId: null,
+    season: null,
+    fighterRecords: {},
   });
 }

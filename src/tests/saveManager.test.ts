@@ -46,9 +46,14 @@ describe('loading', () => {
 
   it('round-trips a valid save', () => {
     const save: SaveData = {
+      playerTeamId: 'hobart',
+      difficulty: 'standard',
+      season: null,
+      fighterRecords: {},
+      activeEvent: null,
       version: SAVE_VERSION,
       audio: { ...DEFAULT_AUDIO_SETTINGS, musicVolume: 0.25, sfxEnabled: false },
-      accessibility: { reducedMotion: true },
+      accessibility: { reducedMotion: true, screenShake: true, announcementCaptions: true },
       progress: {
         selectedTeamId: 'hobart',
         selectedFighterId: 'ales-gillian',
@@ -145,9 +150,13 @@ describe('sanitisation', () => {
     expect(sanitiseAudio(null)).toEqual(DEFAULT_AUDIO_SETTINGS);
   });
 
-  it('defaults reduced motion to off for unreadable input', () => {
-    expect(sanitiseAccessibility({ reducedMotion: true })).toEqual({ reducedMotion: true });
-    expect(sanitiseAccessibility(12)).toEqual({ reducedMotion: false });
+  it('defaults accessibility fields for unreadable input', () => {
+    expect(sanitiseAccessibility({ reducedMotion: true })).toMatchObject({ reducedMotion: true });
+    expect(sanitiseAccessibility(12)).toMatchObject({
+      reducedMotion: false,
+      screenShake: true,
+      announcementCaptions: true,
+    });
   });
 
   it('drops a fighter that no longer exists', () => {

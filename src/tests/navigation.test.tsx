@@ -30,6 +30,13 @@ beforeEach(() => {
     notices: [],
     previewFighterId: null,
     audioUnlocked: false,
+    playerTeamId: null,
+    season: null,
+    fighterRecords: {},
+    activeEventId: null,
+    activeBout: null,
+    lastBoutResult: null,
+    lastEventResult: null,
   });
 });
 
@@ -96,16 +103,16 @@ describe('map screen', () => {
     }
   });
 
-  it('marks the featured club and labels the others as Stage 2', async () => {
+  it('shows each club’s difficulty band on the panel', async () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByTestId('start-game'));
 
     const panel = screen.getByTestId('team-panel');
-    expect(within(panel).getByText('Featured club')).toBeVisible();
+    expect(within(panel).getByText('competitive')).toBeVisible();
 
     await user.click(screen.getByTestId('map-marker-smithton'));
-    expect(within(screen.getByTestId('team-panel')).getByText('Roster in Stage 2')).toBeVisible();
+    expect(within(screen.getByTestId('team-panel')).getByText('approachable')).toBeVisible();
   });
 
   it('advances to the team profile when a club is confirmed', async () => {
@@ -133,16 +140,15 @@ describe('team profile', () => {
     }
   });
 
-  it('explains, rather than hides, an unauthored roster', async () => {
+  it('offers a full six-fighter roster for every club', async () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByTestId('start-game'));
     await user.click(screen.getByTestId('map-marker-rosebery'));
     await user.click(screen.getByTestId('select-team'));
 
-    expect(screen.getByTestId('placeholder-roster-notice')).toBeVisible();
-    expect(screen.getByTestId('view-roster')).toBeDisabled();
-    expect(screen.getByTestId('switch-to-featured')).toBeVisible();
+    expect(within(screen.getByTestId('team-roster')).getAllByRole('listitem')).toHaveLength(6);
+    expect(screen.getByTestId('view-roster')).toBeEnabled();
   });
 });
 
@@ -173,12 +179,12 @@ describe('fighter selection', () => {
     expect(within(profile).getByText(/Read and Reply/)).toBeVisible();
   });
 
-  it('renders all five ratings for the highlighted fighter', async () => {
+  it('renders all six ratings for the highlighted fighter', async () => {
     const user = userEvent.setup();
     await openFighterSelect(user);
 
     const profile = screen.getByTestId('fighter-profile');
-    for (const label of ['Strength', 'Speed', 'Defence', 'Technique', 'Stamina']) {
+    for (const label of ['Power', 'Speed', 'Defence', 'Technique', 'Stamina', 'Agility']) {
       expect(within(profile).getByRole('meter', { name: new RegExp(label, 'i') })).toBeInTheDocument();
     }
   });
@@ -275,7 +281,7 @@ describe('audio controls', () => {
     expect(useGameStore.getState().screen).toBe('settings');
 
     await user.click(screen.getByTestId('settings-back'));
-    expect(useGameStore.getState().screen).toBe('map');
+    expect(useGameStore.getState().screen).toBe('club-select');
   });
 });
 
@@ -299,7 +305,7 @@ describe('progress reset', () => {
 });
 
 describe('stage completion', () => {
-  it('reports the unlock and links to the tournament placeholder', async () => {
+  it('reports the unlock and starts the championship season', async () => {
     const user = userEvent.setup();
     useGameStore.getState().selectFighter('andrew-gillian');
     useGameStore.getState().completeTutorial();
@@ -309,8 +315,8 @@ describe('stage completion', () => {
     expect(screen.getByTestId('tournament-unlock-state')).toHaveTextContent('Unlocked');
 
     await user.click(screen.getByTestId('enter-tournament'));
-    expect(screen.getByTestId('tournament-placeholder')).toBeVisible();
-    expect(screen.getByText(/not implemented in stage 1/i)).toBeVisible();
+    expect(screen.getByTestId('season-schedule')).toBeVisible();
+    expect(useGameStore.getState().season?.events).toHaveLength(6);
   });
 
   it('replays the training session from the completion screen', async () => {
@@ -338,10 +344,10 @@ describe('error and loading states', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/no club is selected/i);
   });
 
-  it('keeps the tournament locked until Stage 1 is finished', () => {
-    useGameStore.setState({ screen: 'tournament' });
+  it('explains a season screen with no season running', () => {
+    useGameStore.setState({ screen: 'season', season: null });
     render(<App />);
-    expect(screen.getByText(/still locked/i)).toBeVisible();
+    expect(screen.getByRole('alert')).toHaveTextContent(/no season is running/i);
   });
 });
 
@@ -376,7 +382,7 @@ describe('accessibility', () => {
     expect(document.documentElement.classList.contains('reduced-motion')).toBe(false);
 
     await act(async () => {
-      useGameStore.getState().setReducedMotion(true);
+      useGameStore.getState().setAccessibility({ reducedMotion: true });
     });
     expect(document.documentElement.classList.contains('reduced-motion')).toBe(true);
   });

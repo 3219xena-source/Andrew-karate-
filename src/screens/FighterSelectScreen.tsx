@@ -72,7 +72,7 @@ export function FighterSelectScreen() {
               ? `${team.name} has no fighter records to display.`
               : 'No club is selected, so there is no roster to show.'}
           </p>
-          <Button variant="primary" onClick={() => goToScreen('map')}>
+          <Button variant="primary" onClick={() => goToScreen('club-select')}>
             Back to the map
           </Button>
         </div>

@@ -2,9 +2,8 @@
  * Team profile — the club's home screen after it has been chosen on the map.
  *
  * Shows the full club identity and its six-fighter roster at a glance, then
- * hands off to the fighter-selection screen. Clubs whose rosters are Stage 2
- * placeholders say so plainly here rather than presenting placeholder records
- * as finished content.
+ * hands off to the fighter-selection screen. Every club is fully authored and
+ * playable, so any of the six can be chosen as the player's home club.
  */
 
 import { Button } from '../components/ui/Button.tsx';
@@ -12,13 +11,13 @@ import { Emblem } from '../components/ui/Emblem.tsx';
 import { Portrait } from '../components/ui/Portrait.tsx';
 import { ScreenFrame } from '../components/ui/ScreenFrame.tsx';
 import { getRoster } from '../data/fighters.ts';
-import { FEATURED_TEAM_ID, getTeam } from '../data/teams.ts';
+import { getVenue } from '../data/venues.ts';
+import { getTeam } from '../data/teams.ts';
 import { useGameStore } from '../state/gameStore.ts';
 
 export function TeamScreen() {
   const selectedTeamId = useGameStore((state) => state.progress.selectedTeamId);
   const goToScreen = useGameStore((state) => state.goToScreen);
-  const selectTeam = useGameStore((state) => state.selectTeam);
 
   const team = getTeam(selectedTeamId);
 
@@ -30,7 +29,7 @@ export function TeamScreen() {
           <p className="state-block__body">
             Choose a club on the Tasmania map before opening a team profile.
           </p>
-          <Button variant="primary" onClick={() => goToScreen('map')}>
+          <Button variant="primary" onClick={() => goToScreen('club-select')}>
             Back to the map
           </Button>
         </div>
@@ -40,7 +39,6 @@ export function TeamScreen() {
 
   const roster = getRoster(team.id);
   const playable = roster.filter((fighter) => fighter.unlocked);
-  const featured = team.status === 'featured';
 
   return (
     <ScreenFrame
@@ -48,7 +46,7 @@ export function TeamScreen() {
       title={team.name}
       footer={
         <>
-          <Button variant="ghost" sound="menu-back" onClick={() => goToScreen('map')} data-testid="team-back">
+          <Button variant="ghost" sound="menu-back" onClick={() => goToScreen('club-select')} data-testid="team-back">
             Back to map
           </Button>
           <Button
@@ -59,14 +57,6 @@ export function TeamScreen() {
           >
             Choose your fighter
           </Button>
-          {playable.length === 0 ? (
-            <Button
-              onClick={() => selectTeam(FEATURED_TEAM_ID)}
-              data-testid="switch-to-featured"
-            >
-              Switch to the featured club
-            </Button>
-          ) : null}
         </>
       }
     >
@@ -78,9 +68,7 @@ export function TeamScreen() {
               <p className="panel__eyebrow">{team.location}, Tasmania</p>
               <h2 className="panel__title">{team.name}</h2>
               <div className="row row--wrap" style={{ marginTop: 'var(--space-2)' }}>
-                <span className={`badge${featured ? ' badge--featured' : ''}`}>
-                  {featured ? 'Featured club' : 'Roster in Stage 2'}
-                </span>
+                <span className="badge badge--featured">{team.difficulty}</span>
                 <span className="badge">{team.strength}</span>
                 <span className="badge">{roster.length} fighters</span>
               </div>
@@ -92,6 +80,10 @@ export function TeamScreen() {
           </p>
 
           <dl className="team-panel__facts">
+            <dt>Coach</dt>
+            <dd>{team.coach}</dd>
+            <dt>Home venue</dt>
+            <dd>{getVenue(team.venueId)?.name ?? '—'}</dd>
             <dt>Style</dt>
             <dd>{team.style}</dd>
             <dt>Speciality</dt>
@@ -100,19 +92,6 @@ export function TeamScreen() {
             <dd>{team.personality}</dd>
           </dl>
         </section>
-
-        {playable.length === 0 ? (
-          <section className="panel" data-testid="placeholder-roster-notice">
-            <p className="panel__eyebrow">Stage 1 limitation</p>
-            <h2 className="panel__title">This club’s fighters are not authored yet</h2>
-            <p className="text-small muted">
-              {team.name} has a complete club identity, and its six roster slots exist so that the data
-              and navigation can be tested end to end. The fighters themselves — names, biographies,
-              ratings and abilities — are authored in Stage 2. To play the training session now, switch
-              to the featured club.
-            </p>
-          </section>
-        ) : null}
 
         <section aria-labelledby="roster-heading">
           <h2 id="roster-heading" className="panel__title" style={{ marginBottom: 'var(--space-4)' }}>

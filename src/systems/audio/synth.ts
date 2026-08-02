@@ -25,7 +25,17 @@ export type SfxName =
   | 'telegraph'
   | 'tutorial-complete'
   | 'applause'
-  | 'victory';
+  | 'victory'
+  // ── Stage 2 competition cues ──────────────────────────────────────────────
+  | 'round-start'
+  | 'timer-warning'
+  | 'power-charge'
+  | 'power-move'
+  | 'knockout'
+  | 'bout-win'
+  | 'bout-loss'
+  | 'event-win'
+  | 'championship';
 
 /**
  * Builds a short burst of filtered white noise, reused for impacts, footsteps
@@ -304,6 +314,140 @@ export function renderSfx(
           duration: 0.55,
           gain: 0.17,
           startAt: now + index * 0.14,
+        });
+      });
+      break;
+
+    // ── Stage 2 competition cues ────────────────────────────────────────────
+
+    case 'round-start':
+      // A referee's two-tone call to begin.
+      playTone(context, destination, { type: 'square', frequency: 587.33, duration: 0.16, gain: 0.15 });
+      playTone(context, destination, {
+        type: 'square',
+        frequency: 880,
+        duration: 0.3,
+        gain: 0.16,
+        startAt: now + 0.16,
+      });
+      break;
+
+    case 'timer-warning':
+      // A dry tick, repeated three times: time is running out.
+      [0, 0.22, 0.44].forEach((offset) => {
+        playTone(context, destination, {
+          type: 'square',
+          frequency: 1320,
+          duration: 0.07,
+          gain: 0.12,
+          startAt: now + offset,
+        });
+      });
+      break;
+
+    case 'power-charge':
+      // A rising sweep announcing that the power meter has filled.
+      playTone(context, destination, {
+        type: 'sawtooth',
+        frequency: 220,
+        glideTo: 880,
+        duration: 0.5,
+        gain: 0.11,
+        attack: 0.05,
+      });
+      break;
+
+    case 'power-move':
+      // The heaviest cue in the game: a low body plus a bright crack.
+      playTone(context, destination, {
+        type: 'sine',
+        frequency: 180,
+        glideTo: 55,
+        duration: 0.42,
+        gain: 0.3,
+      });
+      playNoise(context, destination, {
+        buffer: noise,
+        duration: 0.3,
+        gain: 0.3,
+        filterType: 'bandpass',
+        frequency: 2400,
+        sweepTo: 260,
+        q: 0.8,
+      });
+      break;
+
+    case 'knockout':
+      playTone(context, destination, {
+        type: 'sine',
+        frequency: 140,
+        glideTo: 48,
+        duration: 0.8,
+        gain: 0.28,
+      });
+      playNoise(context, destination, {
+        buffer: noise,
+        duration: 0.55,
+        gain: 0.2,
+        filterType: 'lowpass',
+        frequency: 900,
+        sweepTo: 120,
+      });
+      break;
+
+    case 'bout-win':
+      [523.25, 698.46, 880].forEach((frequency, index) => {
+        playTone(context, destination, {
+          type: 'triangle',
+          frequency,
+          duration: 0.4,
+          gain: 0.18,
+          startAt: now + index * 0.12,
+        });
+      });
+      break;
+
+    case 'bout-loss':
+      // A falling minor third: clearly a loss, never a punishment.
+      [440, 392, 329.63].forEach((frequency, index) => {
+        playTone(context, destination, {
+          type: 'triangle',
+          frequency,
+          duration: 0.45,
+          gain: 0.14,
+          startAt: now + index * 0.15,
+        });
+      });
+      break;
+
+    case 'event-win':
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((frequency, index) => {
+        playTone(context, destination, {
+          type: 'triangle',
+          frequency,
+          duration: 0.6,
+          gain: 0.16,
+          startAt: now + index * 0.13,
+        });
+      });
+      break;
+
+    case 'championship':
+      // The season's biggest cue: a full triad fanfare over a low root.
+      playTone(context, destination, {
+        type: 'sine',
+        frequency: 130.81,
+        duration: 2.4,
+        gain: 0.16,
+        attack: 0.08,
+      });
+      [261.63, 329.63, 392, 523.25, 659.25, 783.99].forEach((frequency, index) => {
+        playTone(context, destination, {
+          type: 'triangle',
+          frequency,
+          duration: 1.4,
+          gain: 0.15,
+          startAt: now + index * 0.16,
         });
       });
       break;

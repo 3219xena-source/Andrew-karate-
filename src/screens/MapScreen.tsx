@@ -56,12 +56,11 @@ export function MapScreen() {
   }
 
   const roster = getRoster(team.id);
-  const featured = team.status === 'featured';
 
   return (
     <ScreenFrame
       eyebrow="Championship"
-      title="Select a Tasmanian club"
+      title="Choose your club"
       wide
       footer={
         <Button variant="ghost" sound="menu-back" onClick={() => goToScreen('title')} data-testid="map-back">
@@ -87,9 +86,7 @@ export function MapScreen() {
                 {team.name}
               </h2>
               <div className="row row--wrap" style={{ marginTop: 'var(--space-2)' }}>
-                <span className={`badge${featured ? ' badge--featured' : ''}`}>
-                  {featured ? 'Featured club' : 'Roster in Stage 2'}
-                </span>
+                <span className="badge badge--featured">{team.difficulty}</span>
                 <span className="badge">{roster.length} fighters</span>
               </div>
             </div>
@@ -104,12 +101,8 @@ export function MapScreen() {
             <dd>{team.personality}</dd>
             <dt>Speciality</dt>
             <dd>{team.speciality}</dd>
-            <dt>Status</dt>
-            <dd>
-              {featured
-                ? 'Fully authored and playable in this build'
-                : 'Club identity authored; the six fighters are placeholders'}
-            </dd>
+            <dt>Coach</dt>
+            <dd>{team.coach}</dd>
           </dl>
 
           <p className="text-small muted">{team.description}</p>

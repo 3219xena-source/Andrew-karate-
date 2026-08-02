@@ -21,20 +21,56 @@ import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { StageCompleteScreen } from './screens/StageCompleteScreen.tsx';
 import { TeamScreen } from './screens/TeamScreen.tsx';
 import { TitleScreen } from './screens/TitleScreen.tsx';
-import { TournamentPlaceholderScreen } from './screens/TournamentPlaceholderScreen.tsx';
+import { FightScreen } from './screens/FightScreen.tsx';
+import { EventPreviewScreen } from './screens/EventPreviewScreen.tsx';
+import { SeasonHubScreen } from './screens/SeasonHubScreen.tsx';
+import {
+  BoutResultScreen,
+  ChampionshipQualificationScreen,
+  CreditsScreen,
+  EventResultScreen,
+  SeasonCompleteScreen,
+  StandingsScreen,
+  VersusScreen,
+} from './screens/ResultScreens.tsx';
 import { audioManager } from './systems/audio/audioManager.ts';
 import { useGameStore, type ScreenId } from './state/gameStore.ts';
 
 const SCREENS: Record<ScreenId, () => JSX.Element> = {
   title: TitleScreen,
   settings: SettingsScreen,
-  map: MapScreen,
+  'club-select': MapScreen,
   team: TeamScreen,
   'fighter-select': FighterSelectScreen,
   dojo: DojoScreen,
   'stage-complete': StageCompleteScreen,
-  tournament: TournamentPlaceholderScreen,
+  season: SeasonHubScreen,
+  'event-preview': EventPreviewScreen,
+  versus: VersusScreen,
+  fight: FightScreen,
+  'bout-result': BoutResultScreen,
+  'event-result': EventResultScreen,
+  standings: StandingsScreen,
+  'championship-qualification': ChampionshipQualificationScreen,
+  'season-complete': SeasonCompleteScreen,
+  credits: CreditsScreen,
 };
+
+/** Screens where background music should play. The arena manages its own. */
+const MUSIC_SCREENS: ReadonlySet<ScreenId> = new Set<ScreenId>([
+  'title',
+  'club-select',
+  'team',
+  'fighter-select',
+  'stage-complete',
+  'season',
+  'event-preview',
+  'versus',
+  'standings',
+  'championship-qualification',
+  'season-complete',
+  'credits',
+]);
 
 export function App() {
   const screen = useGameStore((state) => state.screen);
@@ -74,10 +110,12 @@ export function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
-  // Music plays on the menu screens; the dojo manages its own music request so
-  // that it stops cleanly when a session ends.
+  // Music plays on the menu screens. The dojo and the arena manage their own
+  // music request so it stops cleanly when a session or a bout begins.
   useEffect(() => {
-    if (screen !== 'dojo') audioManager.setMusicRequested(screen !== 'settings');
+    if (screen !== 'dojo' && screen !== 'fight') {
+      audioManager.setMusicRequested(MUSIC_SCREENS.has(screen));
+    }
   }, [screen]);
 
   const Screen = SCREENS[screen] ?? TitleScreen;

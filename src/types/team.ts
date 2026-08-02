@@ -1,10 +1,13 @@
 /**
- * Team data model.
+ * Club data model.
  *
- * Every team in the championship is a location-based Tasmanian club. Team
- * records are pure data: no interface component should ever hardcode a team
+ * Every club in the championship is a location-based Tasmanian club. Club
+ * records are pure data: no interface component should ever hardcode a club
  * name, description or emblem. Replace or extend `src/data/teams.ts` to change
  * the roster of clubs without touching UI code.
+ *
+ * Any club may be selected as the player's home club — nothing in the game
+ * privileges a particular id.
  */
 
 /** Stable identifiers for the six Tasmanian locations. */
@@ -20,11 +23,10 @@ export const TEAM_IDS = [
 export type TeamId = (typeof TEAM_IDS)[number];
 
 /**
- * Availability of a club's roster in the current build.
- * `featured` — fully authored and playable in Stage 1.
- * `scouted`  — club identity authored, roster is a documented placeholder.
+ * How hard this club is to beat, used to pick an AI difficulty band for its
+ * fighters. Every club is fully authored and playable.
  */
-export type TeamStatus = 'featured' | 'scouted';
+export type ClubDifficulty = 'approachable' | 'competitive' | 'formidable';
 
 /** A pair of coordinates in the Tasmania map's own 0..100 viewBox space. */
 export interface MapPoint {
@@ -46,17 +48,26 @@ export interface Team {
     readonly primary: string;
     readonly secondary: string;
   };
+  /** Club identity colours, used across HUD, banners and the arena. */
+  readonly colours: {
+    readonly primary: string;
+    readonly secondary: string;
+  };
+  /** Id of the club's home venue in `src/data/venues.ts`. */
+  readonly venueId: string;
+  /** Head coach. A fictional character, like every other person in the game. */
+  readonly coach: string;
   /** Headline discipline of the club, e.g. "Tactical and disciplined". */
   readonly style: string;
   /** The club's competitive strength, e.g. "Technique". */
   readonly strength: string;
   /** Club character, e.g. "Professional and organised". */
   readonly personality: string;
-  /** Competition speciality shown on the team panel. */
+  /** Competition speciality shown on the club panel. */
   readonly speciality: string;
   /** Two-to-three sentence club description. */
   readonly description: string;
-  readonly status: TeamStatus;
+  readonly difficulty: ClubDifficulty;
   /** Marker position on the Tasmania SVG map. */
   readonly mapPosition: MapPoint;
   /** Which side of the marker its label should sit on, to avoid overlaps. */
