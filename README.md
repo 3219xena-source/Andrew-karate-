@@ -54,6 +54,19 @@ npm run preview   # serves the built bundle at http://127.0.0.1:4173
 The build is fully static — `dist/` can be served from any static host or opened behind any web
 server. There is no backend and no network call at runtime.
 
+## Single-file build
+
+To produce one self-contained HTML file with the CSS and JS inlined — no external requests, openable
+straight from disk or publishable behind a strict content-security policy:
+
+```bash
+npm run bundle             # builds, then writes dist/tasmania-martial-arts-championship.html
+npm run verify:standalone  # the same, then boots it in a browser and checks it plays
+```
+
+`verify:standalone` asserts that the page renders, the dojo canvas is actually painted, settings
+persist, and the page makes **zero** network requests and logs **zero** console errors.
+
 ## Tests
 
 ```bash
