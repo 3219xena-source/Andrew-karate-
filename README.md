@@ -3,28 +3,42 @@
 A family-friendly sport-karate tournament game set across Tasmania. Six location-based clubs, a
 selectable roster, and a guided training session in the dojo.
 
-**This repository contains the Stage 1 vertical-slice prototype.** It delivers the complete early
-player journey — title screen through to a saved Stage 1 completion — and a placeholder for the first
-tournament match. It does not contain a playable tournament; see
+**This repository contains the complete Stage 2 game.** Six clubs, 36 fighters, live
+one-versus-one combat against computer opponents, sequential six-bout club events, a six-event
+season with standings, and a championship final. See
 [Known limitations](docs/KNOWN_LIMITATIONS.md) for exactly what is and is not built.
 
 ---
 
-## The Stage 1 journey
+## The player journey
 
-1. Launch the game and view the title screen
-2. Start a new game
-3. Enter the Tasmania club-selection map
-4. Select one of six location markers
-5. Open the team profile
-6. Review the six main fighters
-7. Select a fighter
-8. Enter the training dojo
-9. Complete the ten-objective movement and combat tutorial
-10. View the Stage 1 completion screen
-11. Unlock the first tournament match (placeholder)
+1. Title screen → start a new game
+2. Choose one of six Tasmanian clubs on the map — any club can be your own
+3. Review its six-fighter roster and pick a fighter
+4. Complete the ten-objective training session in the dojo
+5. Start the championship season
+6. Travel to each event: venue introduction, opponent club, full bout order
+7. Fight six sequential one-versus-one bouts against computer opponents
+8. Win the tie, watch the standings update, continue the season
+9. Qualify for the Tasmania Championship Final and play it
 
-Progress, audio settings and accessibility settings are saved locally and survive a page refresh.
+Progress, settings and season results are saved locally and survive a refresh.
+
+## Documentation
+
+| Document | Covers |
+| --- | --- |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System boundaries and data flow |
+| [COMBAT_SYSTEM.md](docs/COMBAT_SYSTEM.md) | Moves, guard triangle, resources, rounds |
+| [AI_SYSTEM.md](docs/AI_SYSTEM.md) | How the opponent decides, and why it cannot cheat |
+| [SEASON_SYSTEM.md](docs/SEASON_SYSTEM.md) | Events, tie-breaks, standings, championship |
+| [CONTROLS.md](docs/CONTROLS.md) | Every key binding |
+| [SAVE_MIGRATION.md](docs/SAVE_MIGRATION.md) | Save versions and what is never trusted from disk |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Static hosting for four providers |
+| [TEST_REPORT.md](docs/TEST_REPORT.md) | Commands, counts, failures found and fixed |
+| [ASSET_REGISTER.md](docs/ASSET_REGISTER.md) | Every asset, source and licence |
+| [CHARACTERS.md](docs/CHARACTERS.md) | Fictionalisation policy, how to re-cast |
+| [KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) | What this build does not do |
 
 ---
 
@@ -96,17 +110,21 @@ npx playwright test e2e/_screens.spec.ts
 | Key | Action |
 | --- | --- |
 | `A` / `D` or `←` / `→` | Move left and right |
-| `W` / `↑` / `Space` | Jump |
-| `J` | Light attack |
-| `K` | Strong attack |
+| `W` / `↑` | Jump |
+| `S` / `↓` | Crouch |
+| `J` | Light punch |
+| `K` | Strong punch |
+| `U` | Light kick |
+| `I` | Strong kick |
 | `L` (hold) | Block |
 | `Shift` | Dodge |
-| `B` | Bow |
-| `R` | Reset position |
-| `Esc` / `P` | Pause |
+| `Space` | Power attack (needs a full meter) |
+| `P` / `Esc` | Pause |
 
-The control table is defined once, in `src/systems/input/inputManager.ts`, and rendered from there in
-both the dojo and the settings screen — so it cannot drift out of date.
+Attacks are context sensitive: any attack button becomes a jump attack while airborne, and a crouch
+attack while crouching. The training dojo uses a slightly different set — see
+[CONTROLS.md](docs/CONTROLS.md). Both tables are defined once in `src/systems/input/` and rendered
+from there, so the on-screen guide cannot drift out of date.
 
 Every menu is fully operable with the keyboard: `Tab` moves between controls, `Enter` or `Space`
 activates them, and each screen begins with a "Skip to content" link.

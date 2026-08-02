@@ -219,6 +219,8 @@ export function FightScreen() {
           venue,
           redFighter: playerFighter,
           blueFighter: opponentFighter,
+          redLabel: getTeam(playerFighter.teamId)?.shortName ?? '',
+          blueLabel: getTeam(opponentFighter.teamId)?.shortName ?? '',
           effects: effectsRef.current,
           elapsed,
           reducedMotion: accessibilityRef.current.reducedMotion,

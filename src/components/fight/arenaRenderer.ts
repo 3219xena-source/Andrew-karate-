@@ -27,8 +27,28 @@ import {
 } from '../../systems/match/constants.ts';
 import type { FighterSim, MatchState } from '../../systems/match/types.ts';
 
-/** Y coordinate of the floor line in arena space. */
-const FLOOR_Y = 452;
+/**
+ * Vertical composition of the arena, in arena units (ARENA_HEIGHT is 560).
+ *
+ *     0 ──────────────── lighting and hanging banners
+ *   150 ──────────────── venue motif (the back wall's architecture)
+ *   196 ──────────────── crowd, three rows receding upwards
+ *   300 ──────────────── barrier rail at the front of the seating
+ *   330 ── FLOOR_Y ───── the mat begins
+ *   470 ──────────────── the fighters' foot line, well down the mat
+ *   560 ──────────────── the front apron of the mat
+ *
+ * The fighters stand IN FRONT of the barrier, not among the crowd, and there
+ * is real mat both behind and in front of them — which is what gives the scene
+ * depth and keeps the two competitors the clearest thing on screen.
+ */
+const FLOOR_Y = 330;
+/** Distance from the floor line down to where the fighters actually stand. */
+const FIGHTER_FOOT_OFFSET = 140;
+/** Y coordinate of the fighters' feet when grounded. */
+const FOOT_LINE = FLOOR_Y + FIGHTER_FOOT_OFFSET;
+/** Top of the crowd barrier. */
+const BARRIER_Y = 300;
 
 /** A short-lived impact mark drawn over the fighters. */
 export interface ImpactEffect {
@@ -45,6 +65,9 @@ export interface ArenaRenderOptions {
   readonly venue: Venue;
   readonly redFighter: Fighter;
   readonly blueFighter: Fighter;
+  /** Club short names, printed on the two flanking banners. */
+  readonly redLabel: string;
+  readonly blueLabel: string;
   readonly effects: readonly ImpactEffect[];
   /** Seconds since the fight screen opened; drives ambient motion only. */
   readonly elapsed: number;
@@ -129,16 +152,16 @@ function drawMotif(context: CanvasRenderingContext2D, options: ArenaRenderOption
     case 'mountain': {
       // A stylised mountain ridge behind the seating.
       context.beginPath();
-      context.moveTo(0, 300);
-      context.lineTo(180, 150);
-      context.lineTo(300, 226);
-      context.lineTo(470, 96);
-      context.lineTo(640, 220);
-      context.lineTo(820, 130);
-      context.lineTo(1010, 236);
-      context.lineTo(ARENA_WIDTH, 176);
-      context.lineTo(ARENA_WIDTH, 320);
-      context.lineTo(0, 320);
+      context.moveTo(0, 250);
+      context.lineTo(180, 138);
+      context.lineTo(300, 196);
+      context.lineTo(470, 104);
+      context.lineTo(640, 190);
+      context.lineTo(820, 126);
+      context.lineTo(1010, 204);
+      context.lineTo(ARENA_WIDTH, 158);
+      context.lineTo(ARENA_WIDTH, 270);
+      context.lineTo(0, 270);
       context.closePath();
       context.fill();
       context.stroke();
@@ -148,10 +171,10 @@ function drawMotif(context: CanvasRenderingContext2D, options: ArenaRenderOption
       for (let i = 0; i < 6; i += 1) {
         const x = 80 + i * 190;
         context.beginPath();
-        context.moveTo(x, 300);
-        context.lineTo(x, 170);
-        context.arc(x + 60, 170, 60, Math.PI, 0);
-        context.lineTo(x + 120, 300);
+        context.moveTo(x, 265);
+        context.lineTo(x, 190);
+        context.arc(x + 60, 190, 60, Math.PI, 0);
+        context.lineTo(x + 120, 265);
         context.stroke();
       }
       break;
@@ -159,13 +182,13 @@ function drawMotif(context: CanvasRenderingContext2D, options: ArenaRenderOption
     case 'coastal-windows': {
       for (let i = 0; i < 5; i += 1) {
         const x = 70 + i * 225;
-        context.fillRect(x, 110, 170, 190);
-        context.strokeRect(x, 110, 170, 190);
+        context.fillRect(x, 150, 170, 115);
+        context.strokeRect(x, 150, 170, 115);
         context.beginPath();
-        context.moveTo(x + 85, 110);
-        context.lineTo(x + 85, 300);
-        context.moveTo(x, 205);
-        context.lineTo(x + 170, 205);
+        context.moveTo(x + 85, 150);
+        context.lineTo(x + 85, 265);
+        context.moveTo(x, 208);
+        context.lineTo(x + 170, 208);
         context.stroke();
       }
       break;
@@ -174,14 +197,14 @@ function drawMotif(context: CanvasRenderingContext2D, options: ArenaRenderOption
       for (let i = 0; i < 7; i += 1) {
         const x = i * 175;
         context.beginPath();
-        context.moveTo(x, 60);
-        context.lineTo(x + 88, 170);
-        context.lineTo(x + 175, 60);
+        context.moveTo(x, 158);
+        context.lineTo(x + 88, 236);
+        context.lineTo(x + 175, 158);
         context.stroke();
       }
       context.beginPath();
-      context.moveTo(0, 170);
-      context.lineTo(ARENA_WIDTH, 170);
+      context.moveTo(0, 236);
+      context.lineTo(ARENA_WIDTH, 236);
       context.stroke();
       break;
     }
@@ -189,23 +212,23 @@ function drawMotif(context: CanvasRenderingContext2D, options: ArenaRenderOption
       for (let i = 0; i < 10; i += 1) {
         const x = i * 122;
         context.beginPath();
-        context.moveTo(x, 60);
-        context.lineTo(x, 300);
+        context.moveTo(x, 150);
+        context.lineTo(x, 265);
         context.stroke();
       }
       context.beginPath();
-      context.moveTo(0, 132);
-      context.lineTo(ARENA_WIDTH, 132);
+      context.moveTo(0, 200);
+      context.lineTo(ARENA_WIDTH, 200);
       context.stroke();
       break;
     }
     case 'alpine-lodge': {
       context.beginPath();
-      context.moveTo(0, 240);
-      context.lineTo(ARENA_WIDTH / 2, 92);
-      context.lineTo(ARENA_WIDTH, 240);
-      context.lineTo(ARENA_WIDTH, 310);
-      context.lineTo(0, 310);
+      context.moveTo(0, 235);
+      context.lineTo(ARENA_WIDTH / 2, 140);
+      context.lineTo(ARENA_WIDTH, 235);
+      context.lineTo(ARENA_WIDTH, 270);
+      context.lineTo(0, 270);
       context.closePath();
       context.fill();
       context.stroke();
@@ -223,22 +246,37 @@ function drawCrowd(context: CanvasRenderingContext2D, options: ArenaRenderOption
   const { palette } = options.venue;
   const rows = 3;
   context.save();
-  for (let row = 0; row < rows; row += 1) {
-    const y = 306 + row * 30;
-    const spacing = 34 - row * 3;
-    const radius = 13 - row * 1.5;
-    context.fillStyle = hexToRgba(palette.crowd, 0.92 - row * 0.16);
-    for (let x = 18; x < ARENA_WIDTH; x += spacing) {
+  // Rows recede upwards: the nearest row is lowest, largest and darkest.
+  for (let row = rows - 1; row >= 0; row -= 1) {
+    const y = 208 + row * 30;
+    const spacing = 30 + row * 4;
+    const radius = 11 + row * 1.5;
+    context.fillStyle = hexToRgba(palette.crowd, 0.6 + (rows - row) * 0.12);
+    for (let x = 16; x < ARENA_WIDTH; x += spacing) {
       // A slow, low-amplitude sway reads as a live crowd without distraction.
       const sway = options.reducedMotion
         ? 0
-        : Math.sin(options.elapsed * 1.6 + x * 0.05 + row) * 2.2;
+        : Math.sin(options.elapsed * 1.6 + x * 0.05 + row) * 2;
       context.beginPath();
       context.arc(x, y + sway, radius, 0, Math.PI * 2);
       context.fill();
-      context.fillRect(x - radius, y + sway, radius * 2, 26);
+      context.fillRect(x - radius, y + sway, radius * 2, 30);
     }
   }
+
+  // The barrier at the front of the seating. Everything below it is the mat,
+  // so the fighters always read as being in front of the crowd, never in it.
+  const barrier = context.createLinearGradient(0, BARRIER_Y, 0, FLOOR_Y);
+  barrier.addColorStop(0, hexToRgba(palette.crowd, 0.98));
+  barrier.addColorStop(1, hexToRgba(palette.wallBottom, 1));
+  context.fillStyle = barrier;
+  context.fillRect(0, BARRIER_Y, ARENA_WIDTH, FLOOR_Y - BARRIER_Y);
+  context.strokeStyle = hexToRgba(palette.trim, 0.55);
+  context.lineWidth = 3;
+  context.beginPath();
+  context.moveTo(0, BARRIER_Y);
+  context.lineTo(ARENA_WIDTH, BARRIER_Y);
+  context.stroke();
   context.restore();
 }
 
@@ -247,26 +285,55 @@ function drawBanners(context: CanvasRenderingContext2D, options: ArenaRenderOpti
   const sway = options.reducedMotion ? 0 : Math.sin(options.elapsed * 0.8) * 2.5;
 
   // Two club-coloured banners flanking a central championship banner.
-  const banners: Array<{ x: number; w: number; colour: string; text: string }> = [
-    { x: 96, w: 118, colour: options.redFighter.animation.accentColour, text: '' },
-    { x: ARENA_WIDTH / 2 - 150, w: 300, colour: palette.trim, text: bannerText },
-    { x: ARENA_WIDTH - 214, w: 118, colour: options.blueFighter.animation.accentColour, text: '' },
+  const banners: Array<{ x: number; w: number; colour: string; text: string; size: number }> = [
+    {
+      x: 84,
+      w: 168,
+      colour: options.redFighter.animation.accentColour,
+      text: options.redLabel.toUpperCase(),
+      size: 19,
+    },
+    {
+      x: ARENA_WIDTH / 2 - 170,
+      w: 340,
+      colour: palette.trim,
+      text: bannerText,
+      size: 21,
+    },
+    {
+      x: ARENA_WIDTH - 252,
+      w: 168,
+      colour: options.blueFighter.animation.accentColour,
+      text: options.blueLabel.toUpperCase(),
+      size: 19,
+    },
   ];
 
   for (const banner of banners) {
     context.save();
     context.translate(0, sway);
-    context.fillStyle = hexToRgba(banner.colour, 0.55);
-    context.fillRect(banner.x, 40, banner.w, 132);
+
+    // A hanging rail, so the banners read as suspended rather than floating.
+    context.strokeStyle = hexToRgba(palette.accent, 0.7);
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(banner.x + 14, 18);
+    context.lineTo(banner.x + 14, 30);
+    context.moveTo(banner.x + banner.w - 14, 18);
+    context.lineTo(banner.x + banner.w - 14, 30);
+    context.stroke();
+
+    context.fillStyle = hexToRgba(banner.colour, 0.62);
+    context.fillRect(banner.x, 30, banner.w, 92);
     context.strokeStyle = palette.accent;
     context.lineWidth = 3;
-    context.strokeRect(banner.x, 40, banner.w, 132);
-    if (banner.text) {
-      context.fillStyle = '#ffffff';
-      context.font = '600 21px system-ui, sans-serif';
-      context.textAlign = 'center';
-      context.fillText(banner.text, banner.x + banner.w / 2, 118, banner.w - 24);
-    }
+    context.strokeRect(banner.x, 30, banner.w, 92);
+
+    context.fillStyle = '#ffffff';
+    context.font = `600 ${banner.size}px system-ui, sans-serif`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(banner.text, banner.x + banner.w / 2, 76, banner.w - 22);
     context.restore();
   }
 }
@@ -279,13 +346,15 @@ function drawFloor(context: CanvasRenderingContext2D, options: ArenaRenderOption
   context.fillStyle = floor;
   context.fillRect(0, FLOOR_Y, ARENA_WIDTH, ARENA_HEIGHT - FLOOR_Y);
 
-  // Competition-area boundary and centre line.
-  context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  // Competition-area boundary and centre line. The box is inset so the
+  // fighters' foot line sits inside it, which is what makes them read as
+  // standing on the mat rather than in front of it.
+  context.strokeStyle = 'rgba(255, 255, 255, 0.45)';
   context.lineWidth = 3;
-  context.strokeRect(58, FLOOR_Y + 14, ARENA_WIDTH - 116, ARENA_HEIGHT - FLOOR_Y - 30);
+  context.strokeRect(52, FLOOR_Y + 56, ARENA_WIDTH - 104, ARENA_HEIGHT - FLOOR_Y - 96);
   context.beginPath();
-  context.moveTo(ARENA_WIDTH / 2, FLOOR_Y + 18);
-  context.lineTo(ARENA_WIDTH / 2, ARENA_HEIGHT - 20);
+  context.moveTo(ARENA_WIDTH / 2, FLOOR_Y + 60);
+  context.lineTo(ARENA_WIDTH / 2, ARENA_HEIGHT - 44);
   context.stroke();
 
   // The apron in front of the mat.
@@ -298,14 +367,17 @@ function drawFloor(context: CanvasRenderingContext2D, options: ArenaRenderOption
  * an exchange between the two fighters.
  */
 function drawReferee(context: CanvasRenderingContext2D, state: MatchState): void {
-  const x = ARENA_WIDTH / 2;
-  const baseY = FLOOR_Y + 6;
+  // Positioned at the back-left corner of the mat and drawn small, so the
+  // official is present and readable but can never obstruct an exchange
+  // between the two competitors, who fight far forward of this line.
+  const x = 150;
+  const baseY = FLOOR_Y + 34;
   // Arms raised on 'ready' and when a round has been decided.
   const signalling = state.phase !== 'fighting';
 
   context.save();
   context.translate(x, baseY);
-  context.scale(0.62, 0.62);
+  context.scale(0.46, 0.46);
 
   context.fillStyle = 'rgba(0,0,0,0.3)';
   context.beginPath();
@@ -363,7 +435,7 @@ function drawFighter(
   record: Fighter,
 ): void {
   const look = record.animation;
-  const baseY = FLOOR_Y + 26 - sim.y;
+  const baseY = FOOT_LINE - sim.y;
   const crouch = sim.crouching ? FIGHTER_HEIGHT - CROUCH_HEIGHT : 0;
   const knockedDown = sim.action === 'knockdown' || sim.action === 'defeated';
 
@@ -374,7 +446,7 @@ function drawFighter(
   // Contact shadow, which also communicates height while airborne.
   context.fillStyle = 'rgba(0, 0, 0, 0.4)';
   context.beginPath();
-  context.ellipse(sim.x, FLOOR_Y + 28, 34 - Math.min(16, sim.y / 22), 9, 0, 0, Math.PI * 2);
+  context.ellipse(sim.x, FOOT_LINE + 3, 34 - Math.min(16, sim.y / 22), 9, 0, 0, Math.PI * 2);
   context.fill();
 
   context.translate(sim.x, baseY);

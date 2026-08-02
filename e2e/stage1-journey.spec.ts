@@ -2,7 +2,7 @@
  * Stage 1 critical user journey, end to end, in a real browser.
  *
  *   Title → Tasmania map → Team profile → Fighter selection → Dojo →
- *   Tutorial completion → Stage 1 completion → Tournament placeholder
+ *   Tutorial completion → Stage 1 completion → Championship season
  *
  * The dojo section drives the real combat engine with real key presses, so a
  * pass means the tutorial is genuinely completable by a player using the
@@ -96,7 +96,7 @@ test('the full Stage 1 journey can be completed with keyboard and mouse', async 
   // ── Fighter selection ─────────────────────────────────────────────────────
   await expect(page.getByTestId('fighter-grid').getByRole('listitem')).toHaveCount(6);
   await page.getByTestId('fighter-card-andrew-gillian').click();
-  await expect(page.getByTestId('fighter-profile')).toContainText('Andrew Gillian');
+  await expect(page.getByTestId('fighter-profile')).toContainText('Andrew');
   await expect(page.getByTestId('fighter-profile')).toContainText('Balanced karate');
   await page.getByTestId('select-fighter').click();
 
@@ -173,16 +173,17 @@ test('the full Stage 1 journey can be completed with keyboard and mouse', async 
   await expect(page.getByTestId('stage-complete-panel')).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId('tournament-unlock-state')).toHaveText('Unlocked');
 
-  // ── Tournament placeholder ────────────────────────────────────────────────
+  // ── Handover to the Stage 2 season ────────────────────────────────────────
+  // In Stage 1 this button opened a placeholder. It now starts the real
+  // championship season, which is what completing the training unlocks.
   await page.getByTestId('enter-tournament').click();
-  await expect(page.getByTestId('tournament-placeholder')).toBeVisible();
-  await expect(page.getByText(/not implemented in stage 1/i)).toBeVisible();
+  await expect(page.getByTestId('season-schedule')).toBeVisible();
+  await expect(page.getByTestId('season-schedule').getByRole('listitem')).toHaveCount(6);
 
   // ── Persistence across a reload ───────────────────────────────────────────
   await page.reload();
-  await expect(page.getByTestId('progress-summary')).toContainText(/stage 1 complete/i);
   await page.getByTestId('continue-game').click();
-  await expect(page.getByTestId('stage-complete-panel')).toBeVisible();
+  await expect(page.getByTestId('season-schedule')).toBeVisible();
 });
 
 test('audio preferences persist across a refresh', async ({ page }) => {
@@ -231,7 +232,7 @@ test('resuming mid-journey returns to the right screen', async ({ page }) => {
   await page.getByTestId('start-game').click();
   await page.getByTestId('select-team').click();
   await page.getByTestId('view-roster').click();
-  await page.getByTestId('fighter-card-cathryn').click();
+  await page.getByTestId('fighter-card-bea-halloran').click();
   await page.getByTestId('select-fighter').click();
   await expect(page.getByTestId('objective-list')).toBeVisible();
 

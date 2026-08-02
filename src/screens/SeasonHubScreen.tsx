@@ -131,7 +131,12 @@ export function SeasonHubScreen() {
                 {wins} won, {played.length - wins} lost
               </dd>
               <dt>League position</dt>
-              <dd data-testid="league-position">{position > 0 ? `${ordinal(position)}` : '—'}</dd>
+              {/* Before any event has been played every club is on zero points,
+                  so a "position" would be nothing but an alphabetical tiebreak.
+                  Showing a dash is honest; showing 3rd is not. */}
+              <dd data-testid="league-position">
+                {played.length > 0 && position > 0 ? ordinal(position) : '—'}
+              </dd>
             </dl>
           </section>
 

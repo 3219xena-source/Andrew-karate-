@@ -212,7 +212,8 @@ export function FighterSelectScreen() {
               <p className="ability__name">Special ability · {profile.specialAbility.name}</p>
               <p className="text-small muted">{profile.specialAbility.description}</p>
               <p className="subtle" style={{ marginTop: 'var(--space-2)' }}>
-                Stage 1 note: special abilities are descriptive. Handling in the dojo is driven by the
+                Spent from a full power meter during a competition bout. Its damage is scaled by this
+                fighter’s signature technique; everything else about how they handle comes from the
                 ratings above.
               </p>
             </div>

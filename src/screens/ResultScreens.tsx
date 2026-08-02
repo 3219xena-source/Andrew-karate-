@@ -335,7 +335,12 @@ export function StandingsScreen() {
       eyebrow="Championship"
       title="Season standings"
       footer={
-        <Button variant="primary" sound="menu-back" onClick={() => goToScreen('season')}>
+        <Button
+          variant="primary"
+          sound="menu-back"
+          onClick={() => goToScreen('season')}
+          data-testid="back-to-season"
+        >
           Back to the season
         </Button>
       }

@@ -35,16 +35,22 @@ states it to anyone editing the content.
 
 ## The featured roster
 
-Six fighters, all belonging to the featured club (Hobart), all fully authored and playable.
+Six fighters at Hobart, all fully authored and playable. Every club in the
+championship has six; this is simply the club the game offers first.
+
+**Cathryn was retired** in save version 3 and Bea Halloran fills her junior
+slot. Retiring rather than deleting matters: the save migration remaps every
+reference — selected fighter, recorded bouts, active event and career records —
+so no progress or event result is lost. See `docs/SAVE_MIGRATION.md`.
 
 | Name | Role | Class | Style | Highest ratings |
 | --- | --- | --- | --- | --- |
-| Andrew Gillian | Team leader and lead fighter | Adult | Balanced karate | Technique 84, Stamina 79 |
-| Ales | Junior martial-arts student | Junior | Fast and agile karate | Speed 92, Stamina 74 |
-| Cathryn | Junior team member | Junior | Defensive karate | Defence 88, Speed 76 |
-| Mr Graham | Senior fighter and team coach | Senior | Traditional karate | Defence 90, Technique 88 |
+| Andrew | Club captain and lead fighter | Adult | Balanced karate | Technique 84, Stamina 79 |
+| Alice | Junior squad member | Junior | Fast and agile karate | Agility 94, Speed 92 |
+| Bea Halloran | Junior squad member | Junior | Defensive karate | Defence 88, Agility 80 |
+| Mr Graham | Head coach and masters competitor | Senior | Traditional karate | Defence 90, Technique 88 |
 | Janet | Fighter and team strategist | Adult | Technical karate and kung fu | Technique 91, Speed 79 |
-| Mrs Graham | Senior martial-arts fighter | Senior | Traditional defensive karate | Defence 89, Technique 85 |
+| Susan Gillan | Senior mentor and masters competitor | Senior | Traditional defensive karate | Defence 89, Technique 85 |
 
 Mr Graham additionally appears as the coach in the training dojo, delivering the tutorial's
 instruction and feedback through the coach panel.

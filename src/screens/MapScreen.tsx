@@ -30,10 +30,14 @@ export function MapScreen() {
    * Activating a marker opens that club's panel rather than confirming the
    * club — confirmation is the panel's own Select team button. Focus follows to
    * the panel heading so a screen-reader user is taken to the new content.
+   *
+   * The focus move is synchronous on purpose. Deferring it to the next frame
+   * left a window in which the player could move focus somewhere else and have
+   * it yanked back to the heading a frame later.
    */
   const activateTeam = (teamId: TeamId) => {
     setFocusedTeamId(teamId);
-    window.requestAnimationFrame(() => panelHeadingRef.current?.focus());
+    panelHeadingRef.current?.focus();
   };
 
   // The team list is static content; an empty list would mean the data layer

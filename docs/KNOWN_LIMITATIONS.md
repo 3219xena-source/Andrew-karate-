@@ -1,177 +1,109 @@
 # Known limitations
 
-An honest register of what Stage 1 does not do. Nothing in this list is hidden behind a placeholder
-success message in the game itself — where a limitation is visible to the player, the interface says
-so.
+An honest register of what this build does not do. Nothing here is hidden
+behind a placeholder success message in the game itself.
 
----
+## 1. Blocking: the supplied character artwork is not in the repository
 
-## 1. Placeholder features
+Five character images were specified and five fighter records reference them.
+**The files are not present and never reached the build machine** — they were
+provided as chat attachments, which cannot be written to disk. The working tree,
+git history, the remote branch and the whole filesystem were searched.
 
-These are visible in the game and labelled as placeholders in the interface.
+Effect: all six Hobart fighters render the generated placeholder portrait. That
+is the designed fallback and the game is fully playable, but the artwork
+requirement is **not met**. See `docs/ASSET_REGISTER.md` and the README in
+`public/assets/characters/team-tasmania/`.
 
-| Feature | Status | Where it shows |
-| --- | --- | --- |
-| First tournament match | Unlock is real; the match is not built | Tournament screen, badged "Not implemented in Stage 1" |
-| Five of six club rosters | Auto-generated placeholder records | Team panel badge "Roster in Stage 2"; each card badged "Placeholder" |
-| Team emblems | Procedural glyph tiles | Labelled "(placeholder artwork)" to screen readers |
-| Fighter portraits | Procedural initials | Captioned "Placeholder art" |
-| Character models | One procedural animation set for all fighters | Fighter select notes the shared moveset |
-| Special abilities | Descriptive text only | Stated on the fighter profile panel |
-| Voice lines | None recorded | `voice.enabled` is `false` for every fighter |
+## 2. Placeholders
 
----
+| Feature | Status |
+| --- | --- |
+| Fighter portraits (all 36) | Procedural placeholder, captioned in the UI |
+| Club emblems (all 6) | Procedural glyph tiles, labelled to assistive tech |
+| Character models | One procedural animation set for every fighter |
+| Voice lines | None recorded; `voice.enabled` is false for all 36 |
 
-## 2. Gameplay
+## 3. Gameplay
 
-**Only one club has an authored roster.** Hobart's six fighters are fully written. The other five
-clubs have complete identities — name, style, strength, character, speciality, description — but
-their six roster slots each are generated placeholders that exist so the data layer and navigation
-can be exercised. Selecting one of those clubs opens a valid team profile that explains this and
-offers a route to the featured club; it does not dead-end.
+- **One moveset for everyone.** Fighters differ in handling — speed, reach,
+  damage, toughness, stamina, guard drain — but throw the same seven techniques.
+  Signature abilities scale the power attack's damage; they are not distinct
+  moves.
+- **No combo system.** Attacks can be chained by timing, but there is no
+  authored combo table, no cancels and no links.
+- **No health or injury model beyond the round.** Deliberate: this is sport
+  karate. Health represents condition within a round and resets between rounds.
+- **Rival-versus-rival fixtures are not played out.** Only the player's own ties
+  are real bouts; the other four clubs' results each round come from a
+  deterministic strength model. The standings screen says so in the interface.
+- **The player is always seeded into the final** as the host club; the standings
+  decide the opponent. The qualification screen reports whether the club also
+  earned a top-two place on merit.
+- **Fighters occupy about 28% of arena height.** Legible, but a larger figure
+  would read better in a fighting game.
+- **The AI does not learn or adapt**, within a bout or across a season, and has
+  no awareness of the club score.
 
-**All six featured fighters are playable, but they share one moveset.** The brief allowed one
-playable fighter with the rest sharing a controller; all six are selectable and controllable. They
-differ in handling — movement speed, jump height, stamina capacity and regeneration, guard drain,
-attack and dodge speed are all derived from their authored ratings — but they perform the same
-techniques with the same procedural animation set.
+## 4. Platform and input
 
-**Named special abilities are not implemented as mechanics.** "Quick Step", "Coach's Guard" and the
-rest are descriptive in Stage 1. Ratings, not abilities, drive handling. The fighter profile panel
-states this rather than implying the ability is active.
+- **Desktop keyboard only.** No gamepad, no touch controls, no key remapping.
+  Bindings live in a single table so each can be added without touching combat.
+- **Chromium only.** Firefox and Safari are unverified. No browser-specific API
+  is used and Web Audio has a `webkit` fallback, but this is untested.
+- **Below ~30fps the simulation runs slower than real time** rather than letting
+  attacks tunnel through hit detection. A deliberate correctness trade.
 
-**There is no opponent.** No AI, no second fighter, no rounds, no timer, no referee, no scoring, no
-victory or defeat states. This was a deliberate scope decision, not an oversight — Stage 1 is the
-training prototype.
+## 5. Accessibility
 
-**There is no health or damage model, by design.** This is sport karate: contact is scored, never
-injurious. A practice strike that is not blocked or evaded produces a brief guard-reset stagger and
-nothing more. There is no health bar, no knockdown and no injury state anywhere in the engine.
+Implemented: full keyboard navigation, visible focus rings, skip links, one
+`<main>` and one `<h1>` per screen, `role="meter"` with text values on every
+bar, health condition given as a word as well as a bar, belt grade given as a
+name as well as a colour, the player's own standings row marked with text,
+pause, adjustable audio, reduced motion, and a screen-shake toggle.
 
-**Walking past the practice pad is possible.** A technique thrown from the far side does not connect,
-because the fighter is facing away. This is correct behaviour, but the dojo does not currently nudge
-the player back into range or hint at it — a coaching line for that case is a small Stage 2 addition.
+**Not implemented:**
 
-**The simulation clamps oversized frames.** Below roughly 30 frames per second the game runs slower
-than real time rather than allowing techniques to tunnel through hit detection. This is the right
-trade for correctness, but on very slow hardware it will feel sluggish rather than dropping frames.
+- **No screen-reader narration of live combat.** The canvas is
+  `role="application"` with a descriptive label and announcements are in an
+  `aria-live` region, but the moment-to-moment action is not announced. **A
+  player who cannot see the canvas cannot fight a bout.**
+- **No colour-blind palette option.** Contrast is high and nothing essential is
+  colour-only, but there is no dedicated palette.
+- **No difficulty assists** beyond the three AI bands — no slow motion, no input
+  window widening, no bout skip.
+- **No in-game text scaling** (browser zoom works).
+- **No captions setting is wired** — `announcementCaptions` is stored and
+  respected in the save but has no UI control yet.
+- **No formal audit.** No axe or Lighthouse pass, no assistive-technology user
+  testing. The claims above rest on implementation and test assertions.
 
----
+## 6. Saving
 
-## 3. Platform and input
-
-**Desktop keyboard and mouse only.** The layout is responsive down to about 900px wide and the menus
-work at that size, but the dojo has no touch controls. Playing the training session on a phone or
-tablet is not supported in Stage 1.
-
-**No gamepad support.** `KEY_BINDINGS` in `src/systems/input/inputManager.ts` is a single table
-designed to make a second input source straightforward, but no Gamepad API integration exists.
-
-**Key bindings are not remappable.** The table exists in one place for exactly this purpose; the
-remapping screen is not built.
-
-**Tested in Chromium.** The end-to-end suite runs against Chromium only. The code uses no
-Chromium-specific API — Web Audio is behind a `webkitAudioContext` fallback and every browser API is
-feature-detected — but Firefox and Safari have not been verified.
-
----
-
-## 4. Accessibility
-
-Implemented: keyboard navigation throughout, visible focus rings, skip links, one `<main>` and one
-`<h1>` per screen, `role="meter"` with text values for every bar, text alternatives for all state
-communicated by colour, pause capability, adjustable audio, reduced-motion support seeded from the
-operating-system preference, and a focus-trapping modal that restores focus on close.
-
-**Not yet implemented:**
-
-- **No screen-reader narration of live combat.** The canvas is `role="application"` with the current
-  objective as its label, and the objective list updates in an `aria-live` region, but the moment-to-
-  moment action is not announced. The dojo is not usable by a player who cannot see the canvas.
-- **No colour-blind palette option.** Contrast is high and no essential information is colour-only,
-  but there is no dedicated deuteranopia/protanopia palette.
-- **No text-size control in-game.** The interface uses relative units and respects browser zoom, but
-  there is no in-game scaling setting.
-- **No difficulty or assist options.** No slow-motion, no input-timing assistance, no objective skip.
-  A player who cannot meet a timing window has no way past it other than retrying.
-- **No captions or subtitles**, because there is no speech to caption yet. When voice lines are
-  recorded, captions must ship with them.
-- **The tutorial cannot be skipped.** There is a restart control but no skip, so Stage 1 completion
-  requires performing every objective.
-- **Formal audit not performed.** No automated axe/Lighthouse pass and no assistive-technology user
-  testing has been done. The accessibility claims above are based on implementation and the
-  keyboard/landmark assertions in the test suite, not on an audit.
-
----
-
-## 5. Saving
-
-**Single save slot.** One slot, keyed `tmac.save.v1` in `localStorage`. No profiles, no cloud sync,
-no export or import.
-
-**Progress is per-browser.** Clearing site data, using a different browser, or a private window
-starts fresh. The game says so in Settings.
-
-**Storage may be unavailable.** Where `localStorage` is blocked or full, the game runs normally in
-memory and raises a visible warning that the session will not be restored. It does not pretend the
-save succeeded.
-
-**No migrations are written yet.** Version 1 is the first published schema. The migration chain runs
-and is tested, but contains no entries. A save from a *newer* build is not readable: recoverable
-settings are kept and the rest is reset, with the player told.
-
----
-
-## 6. Content and representation
-
-**Character records are fictionalised game avatars.** See [CHARACTERS.md](CHARACTERS.md). They do not
-describe any real person's appearance, ability, health, personality or history. The title screen
-states this to the player.
-
-**Junior characters.** Ales and Cathryn are junior-class students who train under supervision in the
-dojo. There is no adult-versus-child matchup anywhere in Stage 1, no injury animation, no graphic
-impact and no sexualisation. Uniforms and dialogue are age-appropriate.
-
-**Junior and adult competition classes are declared but not enforced.** `ageClassification` exists on
-every fighter and is shown in the interface, but since Stage 1 has no matches, no matchmaking rule
-consumes it. Stage 2 must enforce class separation before any competitive match is built.
-
-**Club identities are fictional.** The six clubs are invented organisations placed at real Tasmanian
-locations. Every description is positive and professional; no location is portrayed negatively and no
-cultural, racial, regional, gender or age stereotypes are used.
-
-**Marker positions are approximate.** The map is a stylised illustration, and marker positions are
-laid out for legibility rather than geographic precision — the three north-coast markers in
-particular are spread apart so their labels do not overlap.
-
----
+- **One save slot**, in `localStorage`. No profiles, cloud sync, export or
+  import.
+- **A bout in progress is not saved.** Completed bouts in the event are kept; a
+  refresh mid-bout restarts that bout from round one. Documented and tested.
+- **A save from a newer build is not readable** — recoverable settings are kept,
+  the rest resets, and the player is told.
 
 ## 7. Testing
 
-**131 unit and component tests, 7 end-to-end tests, all passing.** The full ten-objective curriculum
-is played through with gameplay inputs in both a headless unit test and a real browser.
+See `docs/TEST_REPORT.md` for the full picture. Principal gaps: one browser
+engine, no visual regression baselines, no renderer unit tests, no audio tests,
+no performance profiling.
 
-**Not covered:**
+## 8. Automation hooks in the shipped build
 
-- **No visual regression testing.** The screenshot helper (`e2e/_screens.spec.ts`) captures screens
-  for review but does not compare them against baselines.
-- **The canvas renderer is not directly tested.** It is a pure function and is exercised in the E2E
-  run, but nothing asserts on pixel output. The missing-head bug found during development would not
-  have been caught by the automated suite — it was found by inspecting a screenshot.
-- **The audio manager is not unit-tested.** `jsdom` provides no Web Audio implementation. It is
-  guarded against absence and exercised manually in the browser.
-- **One browser engine only.** See §3.
-- **No performance budget or profiling.** The game runs at 60fps on the development machine; no
-  low-end hardware target has been measured.
-- **No load or soak testing**, and no test of behaviour across an extended session.
+`window.__tmac` exposes `startSeason`, `simulateBout`, `simulateEvent` and
+`getScreen`. They exist so the end-to-end suite can complete a season without
+hours of real-time play, and they drive the same engine, AI and store actions
+the UI drives — they cannot set a result or edit any resource. They are present
+in production builds and inert unless called.
 
----
+## 9. Not built at all
 
-## 8. Not built at all
-
-For the avoidance of doubt, none of the following exists in this build: opponent AI, match rounds,
-round timer, referee rules, scoring, tournament bracket, victory or defeat states, difficulty levels,
-combo tables beyond the single scripted light-light-strong, online multiplayer, character
-customisation, crowd simulation, cinematic sequences, kung-fu-specific animation sets, character
-progression, unlockables beyond the single tournament placeholder, or any form of monetisation,
-analytics or telemetry.
+Online multiplayer, character customisation, progression or unlockables beyond
+the season, crowd simulation beyond silhouettes, cinematic sequences,
+replays, a training mode against a live opponent, tournament formats other than
+the six-event season, analytics, telemetry or monetisation of any kind.
